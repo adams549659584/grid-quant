@@ -1,7 +1,10 @@
 <script setup lang="ts">
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
-import HelloWorld from './components/HelloWorld.vue'
+import HelloWorld from './components/HelloWorld.vue';
+import { search, getKLineM5, getKLineD1 } from './api/stock/stock-api';
+
+search('000301').then(res => console.log(`search : `, res));
+getKLineM5('0.000301').then(res => console.log(`kline m5 : `, res));
+getKLineD1('0.000301', 2).then(res => console.log(`kline d1 : `, res));
 </script>
 
 <template>
