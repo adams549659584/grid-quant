@@ -204,102 +204,94 @@ init();
 
 <template>
   <div class="container">
-    <el-container>
-      <el-header class="header">
-        <h1 class="flex-center">
-          <span>网格交易策略</span>
-          <a
-            class="flex-center"
-            href="https://github.com/adams549659584/grid-quant"
-            target="_blank"
-          >
-            <img
-              class="github-link"
-              src="./assets/images/github.png"
-              alt="https://github.com/adams549659584/grid-quant"
-            />
-          </a>
-        </h1>
-      </el-header>
-      <el-main class="main">
-        <el-container>
-          <el-header>
-            <el-select
-              size="large"
-              v-model="searchKeyword"
-              :clearable="true"
-              filterable
-              remote
-              reserve-keyword
-              placeholder="请选择股票/基金"
-              :remote-method="query"
-              :loading="loading"
-              @change="calcNext"
-            >
-              <el-option
-                v-for="item in searchResultRows"
-                :key="`${item.MktNum}.${item.Code}_${item.Name}`"
-                :label="`${item.Code} ${item.Name} ${item.SecurityTypeName}`"
-                :value="`${item.MktNum}.${item.Code}_${item.Name}`"
-              ></el-option>
-            </el-select>
-            <el-button class="btn-backtesting" size="large" type="danger" @click="backtesting">回测</el-button>
-          </el-header>
-          <el-main>
-            <div v-if="nextPrice" class="flex-center next-price">
-              <div class="flex-row flex-row-header">
-                <div class="flex-column">下个交易日价格预测</div>
-              </div>
-              <div class="flex-row flex-row-header">
-                <div class="flex-column">操作</div>
-                <div class="flex-column">价格</div>
-              </div>
-              <div class="flex-row high-sale-price">
-                <div class="flex-column">极限获利位</div>
-                <div
-                  class="flex-column"
-                >{{ nextPrice.highSalePrice.toFixed(3) }}(+{{ nextPrice.highSaleRate }}%)</div>
-              </div>
-              <div class="flex-row first-sale-price">
-                <div class="flex-column">第一压力位</div>
-                <div
-                  class="flex-column"
-                >{{ nextPrice.firstSalePrice.toFixed(3) }}(+{{ nextPrice.firstSaleRate }}%)</div>
-              </div>
-              <div class="flex-row first-buy-price">
-                <div class="flex-column">第一支撑位</div>
-                <div
-                  class="flex-column"
-                >{{ nextPrice.firstBuyPrice.toFixed(3) }}(-{{ nextPrice.firstBuyRate }}%)</div>
-              </div>
-              <div class="flex-row low-buy-price">
-                <div class="flex-column">极限抄底位</div>
-                <div
-                  class="flex-column"
-                >{{ nextPrice.lowBuyPrice.toFixed(3) }}(-{{ nextPrice.lowBuyRate }}%)</div>
-              </div>
-              <div class="flex-row">
-                <div class="flex-column">振幅</div>
-                <div
-                  class="flex-column"
-                >{{ (nextPrice.firstSaleRate + nextPrice.firstBuyRate).toFixed(2) }}% - {{ (nextPrice.highSaleRate + nextPrice.lowBuyRate).toFixed(2) }}%</div>
-              </div>
-            </div>
-          </el-main>
-        </el-container>
-      </el-main>
-      <el-footer class="footer">
-        <div>
-          <p class="text">
-            MIT Licensed | Copyright © 2022
-            <a
-              href="https://github.com/adams549659584"
-              target="_blank"
-            >adams549659584</a>
-          </p>
+    <header class="header">
+      <h1 class="flex-center">
+        <span>网格交易策略</span>
+        <a class="flex-center" href="https://github.com/adams549659584/grid-quant" target="_blank">
+          <img
+            class="github-link"
+            src="./assets/images/github.png"
+            alt="https://github.com/adams549659584/grid-quant"
+          />
+        </a>
+      </h1>
+    </header>
+    <main class="main">
+      <header class="search">
+        <el-select
+          size="large"
+          v-model="searchKeyword"
+          :clearable="true"
+          filterable
+          remote
+          reserve-keyword
+          placeholder="请选择股票/基金"
+          :remote-method="query"
+          :loading="loading"
+          @change="calcNext"
+        >
+          <el-option
+            v-for="item in searchResultRows"
+            :key="`${item.MktNum}.${item.Code}_${item.Name}`"
+            :label="`${item.Code} ${item.Name} ${item.SecurityTypeName}`"
+            :value="`${item.MktNum}.${item.Code}_${item.Name}`"
+          ></el-option>
+        </el-select>
+        <el-button class="btn-backtesting" size="large" type="danger" @click="backtesting">回测</el-button>
+      </header>
+      <main>
+        <div v-if="nextPrice" class="flex-center next-price">
+          <div class="flex-row flex-row-header">
+            <div class="flex-column">下个交易日价格预测</div>
+          </div>
+          <div class="flex-row flex-row-header">
+            <div class="flex-column">操作</div>
+            <div class="flex-column">价格</div>
+          </div>
+          <div class="flex-row high-sale-price">
+            <div class="flex-column">极限获利位</div>
+            <div
+              class="flex-column"
+            >{{ nextPrice.highSalePrice.toFixed(3) }}(+{{ nextPrice.highSaleRate }}%)</div>
+          </div>
+          <div class="flex-row first-sale-price">
+            <div class="flex-column">第一压力位</div>
+            <div
+              class="flex-column"
+            >{{ nextPrice.firstSalePrice.toFixed(3) }}(+{{ nextPrice.firstSaleRate }}%)</div>
+          </div>
+          <div class="flex-row first-buy-price">
+            <div class="flex-column">第一支撑位</div>
+            <div
+              class="flex-column"
+            >{{ nextPrice.firstBuyPrice.toFixed(3) }}(-{{ nextPrice.firstBuyRate }}%)</div>
+          </div>
+          <div class="flex-row low-buy-price">
+            <div class="flex-column">极限抄底位</div>
+            <div
+              class="flex-column"
+            >{{ nextPrice.lowBuyPrice.toFixed(3) }}(-{{ nextPrice.lowBuyRate }}%)</div>
+          </div>
+          <div class="flex-row">
+            <div class="flex-column">振幅</div>
+            <div
+              class="flex-column"
+            >{{ (nextPrice.firstSaleRate + nextPrice.firstBuyRate).toFixed(2) }}% - {{ (nextPrice.highSaleRate + nextPrice.lowBuyRate).toFixed(2) }}%</div>
+          </div>
         </div>
-      </el-footer>
-    </el-container>
+      </main>
+    </main>
+    <footer class="footer">
+      <div>
+        <p class="text">
+          MIT Licensed | Copyright © 2022
+          <a
+            href="https://github.com/adams549659584"
+            target="_blank"
+          >adams549659584</a>
+        </p>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -314,7 +306,8 @@ init();
   color: #2c3e50;
   max-width: 80rem;
   min-height: 100vh;
-  margin: 2rem auto 0;
+  margin: 0 auto;
+  padding: 1rem;
 
   .flex-center {
     display: flex;
@@ -351,15 +344,21 @@ init();
     color: var(--c-text-light);
   }
   .header {
+    padding: 1rem;
     .github-link {
       width: 1.2rem;
       margin-left: 0.4rem;
     }
   }
   .main {
-    .btn-backtesting {
-      margin-left: 1rem;
+    padding-bottom: 2rem;
+    .search {
+      padding-bottom: 1rem;
+      .btn-backtesting {
+        margin-left: 1rem;
+      }
     }
+
     .next-price {
       color: #000;
       font-size: 1.2rem;
@@ -380,6 +379,9 @@ init();
         background: rgb(34 237 174);
       }
     }
+  }
+  .footer {
+    padding-bottom: 1rem;
   }
 }
 </style>
