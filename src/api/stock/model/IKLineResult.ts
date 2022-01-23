@@ -89,6 +89,11 @@ export interface IKLineRow {
   dateStr: string;
 
   /**
+   * 时分
+   */
+  timeStr: string;
+
+  /**
    * 开盘价(元)
    */
   openPrice: number;

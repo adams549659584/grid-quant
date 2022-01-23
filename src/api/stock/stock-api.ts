@@ -5,10 +5,12 @@ import { ISearchResult } from './model/ISearchResult';
 /**
  * 搜索股票基金
  * @param keyword 关键字
+ * @param pageIndex 页码
+ * @param pageSize 每页大小
  * @returns
  */
-export function search(keyword: string) {
-  const url = `https://searchapi.eastmoney.com/api/Info/Search?appid=el1902262&type=14&token=CCSDCZSDCXYMYZYYSYYXSMDDSMDHHDJT&and14=MultiMatch/Name,Code,PinYin/${keyword}/true&returnfields14=Name,Code,PinYin,MarketType,JYS,MktNum,JYS4App,MktNum4App,ID,Classify,IsExactMatch,SecurityType,SecurityTypeName&pageIndex14=1&pageSize14=10&isAssociation14=false1642753371132`;
+export function search(keyword: string, pageIndex = 1, pageSize = 10) {
+  const url = `https://searchapi.eastmoney.com/api/Info/Search?appid=el1902262&type=14&token=CCSDCZSDCXYMYZYYSYYXSMDDSMDHHDJT&and14=MultiMatch/Name,Code,PinYin/${keyword}/true&returnfields14=Name,Code,PinYin,MarketType,JYS,MktNum,JYS4App,MktNum4App,ID,Classify,IsExactMatch,SecurityType,SecurityTypeName&pageIndex14=${pageIndex}&pageSize14=${pageSize}&isAssociation14=false1642753371132`;
   return jsonp<ISearchResult>(url);
 }
 
@@ -21,8 +23,15 @@ function handleKLineData(klineRes: IKLineResult) {
   if (klineRes && klineRes.data && klineRes.data.klines) {
     klineRes.data.klineDatas = klineRes.data.klines.map((klineStr) => {
       const klineArr = klineStr.split(',');
+      const dateTimeStr = klineArr[0];
+      let dateStr = dateTimeStr;
+      let timeStr = '';
+      if (dateTimeStr.includes(' ')) {
+        [dateStr, timeStr] = dateTimeStr.split(' ');
+      }
       const klineData: IKLineRow = {
-        dateStr: klineArr[0],
+        dateStr,
+        timeStr,
         openPrice: parseFloat(klineArr[1]),
         closePrice: parseFloat(klineArr[2]),
         highPrice: parseFloat(klineArr[3]),
