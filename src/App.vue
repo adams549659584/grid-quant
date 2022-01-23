@@ -13,9 +13,10 @@ const loading = ref(false);
 const nextPrice = ref<INextPrice>();
 // 最小网格比例0.8%
 const minGridRate = 0.008;
+const minGridOptCount = ref(5);
 // 最小持仓
-const minHoldCount = ref(500);
-const gridCount = ref(200);
+const minHoldCount = ref(1000);
+const gridCount = ref(400);
 const holdCount = ref(0);
 const totalMoney = ref(100000);
 const secid = computed(() => {
@@ -74,7 +75,7 @@ const calcNext = async () => {
       nextPrice.value = calcNextPrice(klineDatas[1].closePrice, klineDatas[1].highPrice, klineDatas[1].lowPrice);
     }
     const dayOptRate = mathRound((nextPrice.value.highSalePrice - nextPrice.value.lowBuyPrice) / ((nextPrice.value.highSalePrice + nextPrice.value.lowBuyPrice) / 2), 2);
-    let gridRate = mathRound(dayOptRate / 3);
+    let gridRate = mathRound(dayOptRate / minGridOptCount.value);
     if (gridRate < minGridRate) {
       gridRate = minGridRate;
     }
@@ -89,6 +90,7 @@ const backtesting = async () => {
     ElMessage.error('请先选择股票/基金');
     return;
   }
+  const loadingInstance = ElLoading.service({ lock: true });
   const klineM5 = await getKLineM5(secid.value);
   if (klineM5 && klineM5.data && klineM5.data.klineDatas && klineM5.data.klineDatas.length > 0) {
     holdCount.value = 0;
@@ -99,9 +101,10 @@ const backtesting = async () => {
     let dateStr = firstKline.dateStr;
     let lastHighPrice = firstKline.highPrice;
     let lastLowPrice = firstKline.lowPrice;
-    let klineNextPrice = calcNextPrice(firstKline.closePrice, lastHighPrice, lastLowPrice);
+    let lastClosePrice = firstKline.closePrice;
+    let klineNextPrice = calcNextPrice(lastClosePrice, lastHighPrice, lastLowPrice);
     let optRate = mathRound((klineNextPrice.firstSalePrice - klineNextPrice.firstBuyPrice) / ((klineNextPrice.firstSalePrice + klineNextPrice.firstBuyPrice) / 2), 2);
-    let gridRate = mathRound(optRate / 3);
+    let gridRate = mathRound(optRate / minGridOptCount.value);
     if (gridRate < minGridRate) {
       gridRate = minGridRate;
     }
@@ -117,22 +120,23 @@ const backtesting = async () => {
         if (kline.lowPrice < lastLowPrice) {
           lastLowPrice = kline.lowPrice;
         }
+        lastClosePrice = kline.closePrice;
       } else {
-        // console.log(`lastHighPrice : ${lastHighPrice} , lastLowPrice : ${lastLowPrice}`);
-        todayOpenPrice = kline.openPrice;
-        lastOptPrice = todayOpenPrice;
-        klineNextPrice = calcNextPrice(kline.closePrice, lastHighPrice, lastLowPrice);
-        // console.log(`klineNextPrice : `, klineNextPrice);
-        lastHighPrice = kline.highPrice;
-        lastLowPrice = kline.lowPrice;
+        console.log(`实际 : highPrice : ${lastHighPrice} , lowPrice : ${lastLowPrice} , closePrice : ${lastClosePrice}`);
         dateStr = kline.dateStr;
         console.log(`${dateStr} :`);
+        todayOpenPrice = kline.openPrice;
+        lastOptPrice = todayOpenPrice;
+        klineNextPrice = calcNextPrice(lastClosePrice, lastHighPrice, lastLowPrice);
+        console.log(`预测 : `, klineNextPrice);
+        lastHighPrice = kline.highPrice;
+        lastLowPrice = kline.lowPrice;
         optRate = mathRound((klineNextPrice.firstSalePrice - klineNextPrice.firstBuyPrice) / ((klineNextPrice.firstSalePrice + klineNextPrice.firstBuyPrice) / 2), 2);
-        gridRate = mathRound(optRate / 3);
+        gridRate = mathRound(optRate / minGridOptCount.value);
         if (gridRate < minGridRate) {
           gridRate = minGridRate;
         }
-        // console.log(`gridRate : ${(gridRate * 100).toFixed(2)}%`);
+        console.log(`网格幅度 : ${(gridRate * 100).toFixed(2)}%`);
       }
       if (holdCount.value < minHoldCount.value && kline.openPrice > klineNextPrice.firstBuyPrice && kline.openPrice < klineNextPrice.firstSalePrice) {
         const buyCount = minHoldCount.value - holdCount.value;
@@ -140,17 +144,25 @@ const backtesting = async () => {
         lastOptPrice = kline.openPrice;
         holdCount.value = mathRound(holdCount.value + buyCount);
         totalMoney.value = mathRound(totalMoney.value - money);
-        console.log(`${kline.dateStr}： 低于最小持仓，￥${kline.openPrice} 买入 ${buyCount} 股 , 支出 ￥${money} ， 持仓 ${holdCount.value} ， 余额 ￥${totalMoney.value} ， 市值 ￥${(kline.closePrice * holdCount.value + totalMoney.value).toFixed(2)}`);
+        console.log(`${kline.dateStr} ${kline.timeStr}： 低于最小持仓，￥${kline.openPrice} 买入 ${buyCount} 股 , 支出 ￥${money} ， 持仓 ${holdCount.value} ， 余额 ￥${totalMoney.value} ， 市值 ￥${(kline.closePrice * holdCount.value + totalMoney.value).toFixed(2)}`);
       }
       const klineRate = (kline.openPrice / lastOptPrice) - 1;
       if (Math.abs(klineRate) > gridRate) {
-        if (holdCount.value > 0 && kline.openPrice > klineNextPrice.highSalePrice || kline.openPrice < klineNextPrice.lowBuyPrice) {
+        if (holdCount.value > 0 && kline.openPrice > klineNextPrice.highSalePrice) {
           const saleCount = holdCount.value;
           const money = mathRound(saleCount * kline.openPrice, 2);
           lastOptPrice = kline.openPrice;
           holdCount.value = mathRound(holdCount.value - saleCount);
           totalMoney.value = mathRound(totalMoney.value + money);
-          console.log(`${kline.dateStr}：￥${kline.openPrice} ${kline.openPrice > klineNextPrice.highSalePrice ? '止盈' : '止损'}卖出 ${saleCount} 股 , 收入 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${totalMoney.value} ， 市值 ￥${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`);
+          console.log(`${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 止盈卖出 ${saleCount} 股 , 收入 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${totalMoney.value} ， 市值 ￥${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`);
+        }
+        else if (holdCount.value > 0 && kline.openPrice < klineNextPrice.lowBuyPrice) {
+          const saleCount = holdCount.value;
+          const money = mathRound(saleCount * kline.openPrice, 2);
+          lastOptPrice = kline.openPrice;
+          holdCount.value = mathRound(holdCount.value - saleCount);
+          totalMoney.value = mathRound(totalMoney.value + money);
+          console.log(`${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 止损卖出 ${saleCount} 股 , 收入 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${totalMoney.value} ， 市值 ￥${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`);
         }
         else if (klineRate > 0 && holdCount.value - gridCount.value >= minHoldCount.value) {
           const saleCount = gridCount.value;
@@ -158,22 +170,23 @@ const backtesting = async () => {
           lastOptPrice = kline.openPrice;
           holdCount.value = mathRound(holdCount.value - saleCount);
           totalMoney.value = mathRound(totalMoney.value + money);
-          console.log(`${kline.dateStr}：￥${kline.openPrice} 网格卖出 ${saleCount} 股 , 收入 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${totalMoney.value} ， 市值￥ ${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`);
-        } else if (klineRate < 0) {
+          console.log(`${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 网格卖出 ${saleCount} 股 , 收入 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${totalMoney.value} ， 市值￥ ${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`);
+        } else if (klineRate < 0 && kline.openPrice > klineNextPrice.lowBuyPrice) {
           const buyCount = gridCount.value;
           const money = mathRound(buyCount * kline.openPrice, 2);
           if (totalMoney.value < money) {
-            console.log(`${kline.dateStr}：￥${kline.openPrice} 余额 ￥${totalMoney.value} 不足以购买本次网格， 市值￥ ${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`);
+            console.log(`${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 余额 ￥${totalMoney.value} 不足以购买本次网格， 市值￥ ${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`);
             continue;
           }
           lastOptPrice = kline.openPrice;
           holdCount.value = mathRound(holdCount.value + buyCount);
           totalMoney.value = mathRound(totalMoney.value - money);
-          console.log(`${kline.dateStr}：￥${kline.openPrice} 网格买入 ${buyCount} 股 , 支出 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${totalMoney.value} ， 市值￥ ${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`);
+          console.log(`${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 网格买入 ${buyCount} 股 , 支出 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${totalMoney.value} ， 市值￥ ${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`);
         }
       }
     }
     console.log(`当前持仓 ${holdCount.value} ，  余额 ￥${totalMoney.value}，  市值 ￥${(klineDatas[klineDatas.length - 1].closePrice * holdCount.value + totalMoney.value).toFixed(2)}`);
+    loadingInstance.close();
   } else {
     ElMessage.error('获取K线数据异常');
   }
@@ -235,7 +248,7 @@ init();
           <el-main>
             <div v-if="nextPrice" class="flex-center next-price">
               <div class="flex-row flex-row-header">
-                <div class="flex-column">日价格预测</div>
+                <div class="flex-column">下个交易日价格预测</div>
               </div>
               <div class="flex-row flex-row-header">
                 <div class="flex-column">操作</div>
@@ -243,19 +256,33 @@ init();
               </div>
               <div class="flex-row high-sale-price">
                 <div class="flex-column">极限获利位</div>
-                <div class="flex-column">{{ nextPrice.highSalePrice.toFixed(3) }}</div>
+                <div
+                  class="flex-column"
+                >{{ nextPrice.highSalePrice.toFixed(3) }}(+{{ nextPrice.highSaleRate }}%)</div>
               </div>
               <div class="flex-row first-sale-price">
                 <div class="flex-column">第一压力位</div>
-                <div class="flex-column">{{ nextPrice.firstSalePrice.toFixed(3) }}</div>
+                <div
+                  class="flex-column"
+                >{{ nextPrice.firstSalePrice.toFixed(3) }}(+{{ nextPrice.firstSaleRate }}%)</div>
               </div>
               <div class="flex-row first-buy-price">
                 <div class="flex-column">第一支撑位</div>
-                <div class="flex-column">{{ nextPrice.firstBuyPrice.toFixed(3) }}</div>
+                <div
+                  class="flex-column"
+                >{{ nextPrice.firstBuyPrice.toFixed(3) }}(-{{ nextPrice.firstBuyRate }}%)</div>
               </div>
               <div class="flex-row low-buy-price">
                 <div class="flex-column">极限抄底位</div>
-                <div class="flex-column">{{ nextPrice.lowBuyPrice.toFixed(3) }}</div>
+                <div
+                  class="flex-column"
+                >{{ nextPrice.lowBuyPrice.toFixed(3) }}(-{{ nextPrice.lowBuyRate }}%)</div>
+              </div>
+              <div class="flex-row">
+                <div class="flex-column">振幅</div>
+                <div
+                  class="flex-column"
+                >{{ (nextPrice.firstSaleRate + nextPrice.firstBuyRate).toFixed(2) }}% - {{ (nextPrice.highSaleRate + nextPrice.lowBuyRate).toFixed(2) }}%</div>
               </div>
             </div>
           </el-main>
@@ -285,7 +312,7 @@ init();
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  max-width: 67.5rem;
+  max-width: 80rem;
   min-height: 100vh;
   margin: 2rem auto 0;
 
@@ -337,6 +364,9 @@ init();
       color: #000;
       font-size: 1.2rem;
       font-weight: 600;
+      .flex-column {
+        width: 50%;
+      }
       .high-sale-price {
         background: rgb(239 118 118);
       }
