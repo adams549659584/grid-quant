@@ -1,3 +1,5 @@
+import { INextPrice } from '../../../helpers/StockHelper';
+
 export interface ISearchResult {
   /**
    * 结果集
