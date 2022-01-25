@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ElLoading, ElMessage } from 'element-plus';
-import { computed, ref, nextTick } from 'vue';
+import { computed, ref, onBeforeUnmount } from 'vue';
 import { ISearchResultRow } from './api/stock/model/ISearchResult';
 import { search, getKLineM5, getKLineD1 } from './api/stock/stock-api';
 import { formatNow } from './helpers/DateHelper';
@@ -23,6 +23,7 @@ const minHoldCount = ref(1000);
 const gridCount = ref(400);
 const holdCount = ref(0);
 const totalMoney = ref(100000);
+const nextPriceTimer = ref(0);
 const secid = computed(() => {
   if (!searchKeyword.value) {
     return '';
@@ -31,7 +32,7 @@ const secid = computed(() => {
 });
 
 const nextSwitchChange = async () => {
-  initHistoryRows();
+  initNextPriceList();
 };
 
 const query = async (keyword: string) => {
@@ -98,9 +99,7 @@ const calcNext = async (secid: string) => {
 const delHistory = (row: IHistoryRow) => {
   let historys = getHistory();
   historys = historys.filter((x) => !(row.market === x.market && row.code === x.code && row.name === x.name));
-  nextTick(() => {
-    historyRows.value = historys;
-  });
+  historyRows.value = historys;
   localStorage.setItem(historySearchResultKey, JSON.stringify(historys));
 };
 
@@ -237,19 +236,26 @@ const backtesting = async () => {
   }
 };
 
-const initHistoryRows = async () => {
+const initNextPriceList = async () => {
   historyRows.value = getHistory();
   if (historyRows.value.length > 0) {
     historyRows.value.forEach((row) => calcNext(`${row.market}.${row.code}`));
   } else {
     ['1.000001', '1.000300', '1.000905', '0.399006'].forEach((secid) => calcNext(secid));
   }
+  nextPriceTimer.value = setTimeout(() => {
+    initNextPriceList();
+  }, 1000 * 30);
 };
 
 const init = () => {
-  initHistoryRows();
+  initNextPriceList();
 };
 init();
+
+onBeforeUnmount(() => {
+  clearTimeout(nextPriceTimer.value);
+});
 </script>
 
 <template>
@@ -289,36 +295,36 @@ init();
       </header>
       <main>
         <div v-if="historyRows" class="next-price-box">
-          <div v-for="(row, index) in historyRows" :key="index" class="flex-center next-price">
-            <div class="flex-row flex-row-header">
-              <div class="flex-column">
-                <div class="stock-name">{{ `${row.code} ${row.name}` }}</div>
+          <div v-for="(row, index) in historyRows" :key="index" class="cus-table next-price">
+            <div class="cus-row cus-row-header">
+              <div class="cus-column">
+                <span class="stock-name">{{ `${row.code} ${row.name}` }}</span>
                 <el-button class="btn-delete" type="danger" :icon="Delete" circle @click="delHistory(row)"></el-button>
               </div>
             </div>
-            <div class="flex-row flex-row-header">
-              <div class="flex-column">操作</div>
-              <div class="flex-column">价格({{ row.nowPrice.closePrice.toFixed(3) }})</div>
+            <div class="cus-row cus-row-header">
+              <div class="cus-column">操作</div>
+              <div class="cus-column">价格({{ row.nowPrice.closePrice.toFixed(3) }})</div>
             </div>
-            <div class="flex-row high-sale-price">
-              <div class="flex-column">极限获利位</div>
-              <div class="flex-column">{{ row.nextPrice.highSalePrice.toFixed(3) }}(+{{ row.nextPrice.highSaleRate }}%)</div>
+            <div class="cus-row high-sale-price">
+              <div class="cus-column">极限获利位</div>
+              <div class="cus-column">{{ row.nextPrice.highSalePrice.toFixed(3) }}(+{{ row.nextPrice.highSaleRate }}%)</div>
             </div>
-            <div class="flex-row first-sale-price">
-              <div class="flex-column">第一压力位</div>
-              <div class="flex-column">{{ row.nextPrice.firstSalePrice.toFixed(3) }}(+{{ row.nextPrice.firstSaleRate }}%)</div>
+            <div class="cus-row first-sale-price">
+              <div class="cus-column">第一压力位</div>
+              <div class="cus-column">{{ row.nextPrice.firstSalePrice.toFixed(3) }}(+{{ row.nextPrice.firstSaleRate }}%)</div>
             </div>
-            <div class="flex-row first-buy-price">
-              <div class="flex-column">第一支撑位</div>
-              <div class="flex-column">{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate }}%)</div>
+            <div class="cus-row first-buy-price">
+              <div class="cus-column">第一支撑位</div>
+              <div class="cus-column">{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate }}%)</div>
             </div>
-            <div class="flex-row low-buy-price">
-              <div class="flex-column">极限抄底位</div>
-              <div class="flex-column">{{ row.nextPrice.lowBuyPrice.toFixed(3) }}(-{{ row.nextPrice.lowBuyRate }}%)</div>
+            <div class="cus-row low-buy-price">
+              <div class="cus-column">极限抄底位</div>
+              <div class="cus-column">{{ row.nextPrice.lowBuyPrice.toFixed(3) }}(-{{ row.nextPrice.lowBuyRate }}%)</div>
             </div>
-            <div class="flex-row">
-              <div class="flex-column">振幅</div>
-              <div class="flex-column">
+            <div class="cus-row">
+              <div class="cus-column">振幅</div>
+              <div class="cus-column">
                 {{ (row.nextPrice.firstSaleRate + row.nextPrice.firstBuyRate).toFixed(2) }}% - {{ (row.nextPrice.highSaleRate + row.nextPrice.lowBuyRate).toFixed(2) }}%
               </div>
             </div>
@@ -346,7 +352,6 @@ init();
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  max-width: 102rem;
   min-height: 100vh;
   margin: 0 auto;
   padding: 1rem;
@@ -357,24 +362,26 @@ init();
     align-items: center;
     flex-wrap: wrap;
   }
-  .flex-row {
-    @extend .flex-center;
-    border: 0.01rem solid #dcdfe6;
-    width: 100%;
-    &:not(:first-child) {
-      border-top: none;
-    }
-    &.flex-row-header {
-      font-size: 1.4rem;
-      font-weight: bold;
-    }
-    .flex-column {
+  .cus-table {
+    .cus-row {
       @extend .flex-center;
-      border-left: 0.01rem solid #dcdfe6;
-      flex: 1;
-      padding: 0.8rem;
-      &:first-child {
-        border-left: none;
+      border: 0.01rem solid #dcdfe6;
+      width: 100%;
+      &:not(:first-child) {
+        border-top: none;
+      }
+      &.cus-row-header {
+        font-size: 1.4rem;
+        font-weight: bold;
+      }
+      .cus-column {
+        @extend .flex-center;
+        border-left: 0.01rem solid #dcdfe6;
+        flex: 1;
+        padding: 0.8rem;
+        &:first-child {
+          border-left: none;
+        }
       }
     }
   }
@@ -385,6 +392,14 @@ init();
     line-height: 1.4;
     font-size: 0.9rem;
     color: var(--c-text-light);
+  }
+  .text-over {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .clear {
+    clear: both;
   }
   .header {
     padding: 1rem;
@@ -404,22 +419,24 @@ init();
       }
     }
     .next-price-box {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
+      &::after {
+        content: '';
+        display: block;
+        clear: both;
+      }
+      margin-top: 1rem;
       .next-price {
-        width: 24rem;
-        margin: 1rem auto 0;
+        width: 22.4rem;
+        float: left;
+        margin: 0 0.6rem 0.6rem 0;
         color: #000;
         font-size: 1.2rem;
         font-weight: 600;
-        .flex-column {
-          width: 50%;
+        .cus-column {
+          @extend .text-over;
           .stock-name {
-            width: 19rem;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
+            width: 84%;
+            @extend .text-over;
           }
           .btn-delete {
             margin-left: 1rem;
