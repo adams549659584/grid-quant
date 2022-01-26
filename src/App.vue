@@ -14,6 +14,9 @@ const searchKeyword = ref('');
 const searchResultRows = ref<ISearchResultRow[]>();
 const historyRows = ref<IHistoryRow[]>();
 const loading = ref(false);
+// 是否交易时间内
+const dateNowHM = Number(formatNow('Hmm'));
+const isTradeTime = dateNowHM >= 930 && dateNowHM <= 1500;
 
 // 最小网格比例0.8%
 const minGridRate = 0.008;
@@ -243,9 +246,11 @@ const initNextPriceList = async () => {
   } else {
     ['1.000001', '1.000300', '1.000905', '0.399006'].forEach((secid) => calcNext(secid));
   }
-  nextPriceTimer.value = setTimeout(() => {
-    initNextPriceList();
-  }, 1000 * 30);
+  if (isTradeTime) {
+    nextPriceTimer.value = setTimeout(() => {
+      initNextPriceList();
+    }, 1000 * 30);
+  }
 };
 
 const init = () => {
@@ -263,48 +268,64 @@ onBeforeUnmount(() => {
     <header class="header">
       <h1 class="flex-center">
         <span>价格预测</span>
-        <a class="flex-center" href="https://github.com/adams549659584/grid-quant" target="_blank">
-          <img class="github-link" src="./assets/images/github.png" alt="https://github.com/adams549659584/grid-quant" />
+        <a class="flex-center"
+           href="https://github.com/adams549659584/grid-quant"
+           target="_blank">
+          <img class="github-link"
+               src="./assets/images/github.png"
+               alt="https://github.com/adams549659584/grid-quant" />
         </a>
       </h1>
     </header>
     <main class="main">
       <header class="search">
-        <el-switch v-if="new Date().getHours() >= 15" v-model="nextSwitch" inline-prompt active-text="预" inactive-text="回" @change="nextSwitchChange" />
-        <el-select
-          class="stock-selelct"
-          size="large"
-          v-model="searchKeyword"
-          :clearable="true"
-          filterable
-          remote
-          reserve-keyword
-          placeholder="请选择股票/基金"
-          :remote-method="query"
-          :loading="loading"
-          @change="selectChange"
-        >
-          <el-option
-            v-for="item in searchResultRows"
-            :key="`${item.MktNum}.${item.Code}_${item.Name}`"
-            :label="`${item.Code} ${item.Name} ${item.SecurityTypeName}`"
-            :value="`${item.MktNum}.${item.Code}_${item.Name}`"
-          ></el-option>
+        <el-switch v-if="!isTradeTime"
+                   v-model="nextSwitch"
+                   inline-prompt
+                   active-text="预"
+                   inactive-text="回"
+                   @change="nextSwitchChange" />
+        <el-select class="stock-selelct"
+                   size="large"
+                   v-model="searchKeyword"
+                   :clearable="true"
+                   filterable
+                   remote
+                   reserve-keyword
+                   placeholder="请选择股票/基金"
+                   :remote-method="query"
+                   :loading="loading"
+                   @change="selectChange">
+          <el-option v-for="item in searchResultRows"
+                     :key="`${item.MktNum}.${item.Code}_${item.Name}`"
+                     :label="`${item.Code} ${item.Name} ${item.SecurityTypeName}`"
+                     :value="`${item.MktNum}.${item.Code}_${item.Name}`"></el-option>
         </el-select>
-        <el-button class="btn-backtesting" size="large" type="danger" @click="backtesting">回测</el-button>
+        <el-button class="btn-backtesting"
+                   size="large"
+                   type="danger"
+                   @click="backtesting">回测</el-button>
       </header>
       <main>
-        <div v-if="historyRows" class="next-price-box">
-          <div v-for="(row, index) in historyRows" :key="index" class="cus-table next-price">
+        <div v-if="historyRows"
+             class="next-price-box clear">
+          <div v-for="(row, index) in historyRows"
+               :key="index"
+               class="cus-table next-price">
             <div class="cus-row cus-row-header">
               <div class="cus-column">
                 <span class="stock-name">{{ `${row.code} ${row.name}` }}</span>
-                <el-button class="btn-delete" type="danger" :icon="Delete" circle @click="delHistory(row)"></el-button>
+                <el-button class="btn-delete"
+                           type="danger"
+                           :icon="Delete"
+                           circle
+                           @click="delHistory(row)"></el-button>
               </div>
             </div>
             <div class="cus-row cus-row-header">
               <div class="cus-column">操作</div>
-              <div class="cus-column">价格({{ row.nowPrice.closePrice.toFixed(3) }})</div>
+              <div class="cus-column close-price"
+                   :class="{'close-price-red':row.nowPrice.closePrice > (row.nextPrice.firstSalePrice + row.nextPrice.firstBuyPrice)/2}">价格({{ row.nowPrice.closePrice.toFixed(3) }})</div>
             </div>
             <div class="cus-row high-sale-price">
               <div class="cus-column">极限获利位</div>
@@ -336,7 +357,8 @@ onBeforeUnmount(() => {
       <div>
         <p class="text">
           MIT Licensed | Copyright © 2022
-          <a href="https://github.com/adams549659584" target="_blank">adams549659584</a>
+          <a href="https://github.com/adams549659584"
+             target="_blank">adams549659584</a>
         </p>
       </div>
     </footer>
@@ -400,7 +422,11 @@ onBeforeUnmount(() => {
     white-space: nowrap;
   }
   .clear {
-    clear: both;
+    &::after {
+      content: '';
+      display: block;
+      clear: both;
+    }
   }
   .header {
     padding: 1rem;
@@ -420,11 +446,6 @@ onBeforeUnmount(() => {
       }
     }
     .next-price-box {
-      &::after {
-        content: '';
-        display: block;
-        clear: both;
-      }
       margin-top: 1rem;
       .next-price {
         width: 22.4rem;
@@ -441,6 +462,12 @@ onBeforeUnmount(() => {
           }
           .btn-delete {
             margin-left: 1rem;
+          }
+        }
+        .close-price {
+          color: green;
+          &.close-price-red {
+            color: red;
           }
         }
         .high-sale-price {
