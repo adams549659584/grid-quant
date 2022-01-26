@@ -5,7 +5,7 @@ import { ISearchResultRow } from './api/stock/model/ISearchResult';
 import { search, getKLineM5, getKLineD1 } from './api/stock/stock-api';
 import { formatNow } from './helpers/DateHelper';
 import { calcNextPrice, mathRound } from './helpers/StockHelper';
-import { Delete } from '@element-plus/icons-vue';
+import { Delete, CaretRight, CircleClose } from '@element-plus/icons-vue';
 import { IHistoryRow } from './api/stock/model/IHistoryRow';
 
 const historySearchResultKey = 'history_search_results';
@@ -18,7 +18,8 @@ const loading = ref(false);
 // 是否交易时间内
 const dateNowHM = Number(formatNow('Hmm'));
 const isTradeTime = dateNowHM >= 930 && dateNowHM <= 1500;
-const isShowNextSwitchChange = window.screen.width > 500 && !isTradeTime;
+// const isShowNextSwitchChange = window.screen.width > 500 && !isTradeTime;
+const isShowNextSwitchChange = !isTradeTime;
 
 // 最小网格比例0.8%
 const minGridRate = 0.008;
@@ -30,6 +31,8 @@ const holdCount = ref(0);
 const totalMoney = ref(100000);
 const nextPriceTimer = ref(0);
 const secid = ref('');
+const isShowBacktestingLog = ref(false);
+const backtestingLogs = ref<string[]>([]);
 
 const changeSearchResultShow = (isShow: boolean) => {
   if (isShow) {
@@ -75,7 +78,7 @@ const updateHistory = (newHistory: IHistoryRow) => {
 };
 
 const selectChange = async (val: string) => {
-  console.log(`selectChange : `, val);
+  backtestingLogs.value.push(`selectChange : `, val);
   secid.value = val;
   return calcNext(val);
 };
@@ -113,17 +116,16 @@ const delHistory = (row: IHistoryRow) => {
 };
 
 // 回测
-const backtesting = async () => {
-  if (!secid.value) {
-    ElMessage.error('请先选择股票/基金');
-    return;
-  }
+const backtesting = async (secid: string) => {
   const loadingInstance = ElLoading.service({ lock: true });
-  const klineM5 = await getKLineM5(secid.value);
+  const klineM5 = await getKLineM5(secid);
+  loadingInstance.close();
   if (klineM5 && klineM5.data && klineM5.data.klineDatas && klineM5.data.klineDatas.length > 0) {
+    isShowBacktestingLog.value = true;
+    backtestingLogs.value = [];
     holdCount.value = 0;
     totalMoney.value = 100000;
-    console.log(`初始持仓 ${holdCount.value} ，  余额 ￥${totalMoney.value}`);
+    backtestingLogs.value.push(`初始持仓 ${holdCount.value} ，  余额 ￥${totalMoney.value}`);
     const klineDatas = klineM5.data.klineDatas;
     const firstKline = klineDatas[0];
     let dateStr = firstKline.dateStr;
@@ -136,7 +138,7 @@ const backtesting = async () => {
     if (gridRate < minGridRate) {
       gridRate = minGridRate;
     }
-    // console.log(`gridRate : ${(gridRate * 100).toFixed(2)}%`);
+    // backtestingLogs.value.push(`gridRate : ${(gridRate * 100).toFixed(2)}%`);
     let todayOpenPrice = firstKline.openPrice;
     let lastOptPrice = todayOpenPrice;
     for (let i = 1; i < klineDatas.length; i++) {
@@ -150,13 +152,13 @@ const backtesting = async () => {
         }
         lastClosePrice = kline.closePrice;
       } else {
-        console.log(`实际 : highPrice : ${lastHighPrice} , lowPrice : ${lastLowPrice} , closePrice : ${lastClosePrice}`);
+        // backtestingLogs.value.push(`实际 : highPrice : ${lastHighPrice} , lowPrice : ${lastLowPrice} , closePrice : ${lastClosePrice}`);
         dateStr = kline.dateStr;
-        console.log(`${dateStr} :`);
+        // backtestingLogs.value.push(`${dateStr} :`);
         todayOpenPrice = kline.openPrice;
         lastOptPrice = todayOpenPrice;
         klineNextPrice = calcNextPrice(lastClosePrice, lastHighPrice, lastLowPrice);
-        console.log(`预测 : `, klineNextPrice);
+        // backtestingLogs.value.push(`预测 : ${JSON.stringify(klineNextPrice)}`);
         lastHighPrice = kline.highPrice;
         lastLowPrice = kline.lowPrice;
         optRate = mathRound((klineNextPrice.firstSalePrice - klineNextPrice.firstBuyPrice) / ((klineNextPrice.firstSalePrice + klineNextPrice.firstBuyPrice) / 2), 2);
@@ -164,15 +166,24 @@ const backtesting = async () => {
         if (gridRate < minGridRate) {
           gridRate = minGridRate;
         }
-        console.log(`网格幅度 : ${(gridRate * 100).toFixed(2)}%`);
+        // backtestingLogs.value.push(`网格幅度 : ${(gridRate * 100).toFixed(2)}%`);
       }
       if (holdCount.value < minHoldCount.value && kline.openPrice > klineNextPrice.firstBuyPrice && kline.openPrice < klineNextPrice.firstSalePrice) {
         const buyCount = minHoldCount.value - holdCount.value;
         const money = mathRound(buyCount * kline.openPrice, 2);
         lastOptPrice = kline.openPrice;
+        if (totalMoney.value < money) {
+          backtestingLogs.value.push(
+            `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 余额 ￥${totalMoney.value} 不足以建仓${buyCount}， 市值￥ ${(
+              kline.openPrice * holdCount.value +
+              totalMoney.value
+            ).toFixed(2)}`
+          );
+          continue;
+        }
         holdCount.value = mathRound(holdCount.value + buyCount);
         totalMoney.value = mathRound(totalMoney.value - money);
-        console.log(
+        backtestingLogs.value.push(
           `${kline.dateStr} ${kline.timeStr}： 低于最小持仓，￥${kline.openPrice} 买入 ${buyCount} 股 , 支出 ￥${money} ， 持仓 ${holdCount.value} ， 余额 ￥${
             totalMoney.value
           } ， 市值 ￥${(kline.closePrice * holdCount.value + totalMoney.value).toFixed(2)}`
@@ -186,7 +197,7 @@ const backtesting = async () => {
           lastOptPrice = kline.openPrice;
           holdCount.value = mathRound(holdCount.value - saleCount);
           totalMoney.value = mathRound(totalMoney.value + money);
-          console.log(
+          backtestingLogs.value.push(
             `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 止盈卖出 ${saleCount} 股 , 收入 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${
               totalMoney.value
             } ， 市值 ￥${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`
@@ -197,7 +208,7 @@ const backtesting = async () => {
           lastOptPrice = kline.openPrice;
           holdCount.value = mathRound(holdCount.value - saleCount);
           totalMoney.value = mathRound(totalMoney.value + money);
-          console.log(
+          backtestingLogs.value.push(
             `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 止损卖出 ${saleCount} 股 , 收入 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${
               totalMoney.value
             } ， 市值 ￥${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`
@@ -208,7 +219,7 @@ const backtesting = async () => {
           lastOptPrice = kline.openPrice;
           holdCount.value = mathRound(holdCount.value - saleCount);
           totalMoney.value = mathRound(totalMoney.value + money);
-          console.log(
+          backtestingLogs.value.push(
             `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 网格卖出 ${saleCount} 股 , 收入 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${
               totalMoney.value
             } ， 市值￥ ${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`
@@ -217,7 +228,7 @@ const backtesting = async () => {
           const buyCount = gridCount.value;
           const money = mathRound(buyCount * kline.openPrice, 2);
           if (totalMoney.value < money) {
-            console.log(
+            backtestingLogs.value.push(
               `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 余额 ￥${totalMoney.value} 不足以购买本次网格， 市值￥ ${(
                 kline.openPrice * holdCount.value +
                 totalMoney.value
@@ -228,7 +239,7 @@ const backtesting = async () => {
           lastOptPrice = kline.openPrice;
           holdCount.value = mathRound(holdCount.value + buyCount);
           totalMoney.value = mathRound(totalMoney.value - money);
-          console.log(
+          backtestingLogs.value.push(
             `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 网格买入 ${buyCount} 股 , 支出 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${
               totalMoney.value
             } ， 市值￥ ${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`
@@ -236,13 +247,16 @@ const backtesting = async () => {
         }
       }
     }
-    console.log(
+    backtestingLogs.value.push(
       `当前持仓 ${holdCount.value} ，  余额 ￥${totalMoney.value}，  市值 ￥${(klineDatas[klineDatas.length - 1].closePrice * holdCount.value + totalMoney.value).toFixed(2)}`
     );
-    loadingInstance.close();
   } else {
     ElMessage.error('获取K线数据异常');
   }
+};
+
+const closeBacktesting = async () => {
+  isShowBacktestingLog.value = false;
 };
 
 const initNextPriceList = async () => {
@@ -316,10 +330,10 @@ onBeforeUnmount(() => {
             </ul>
           </div>
         </div>
-        <el-button class="btn-backtesting"
+        <!-- <el-button class="btn-backtesting"
                    size="large"
                    type="danger"
-                   @click="backtesting">回测</el-button>
+                   @click="backtesting">回测</el-button> -->
       </header>
       <main>
         <div v-if="historyRows"
@@ -330,7 +344,12 @@ onBeforeUnmount(() => {
             <div class="cus-row cus-row-header">
               <div class="cus-column">
                 <span class="stock-name">{{ `${row.code} ${row.name}` }}</span>
-                <el-button class="btn-delete"
+                <el-button class="btn-opt"
+                           type="primary"
+                           :icon="CaretRight"
+                           circle
+                           @click="backtesting(`${row.market}.${row.code}`)"></el-button>
+                <el-button class="btn-opt"
                            type="danger"
                            :icon="Delete"
                            circle
@@ -363,6 +382,19 @@ onBeforeUnmount(() => {
               <div class="cus-column">
                 {{ (row.nextPrice.firstSaleRate + row.nextPrice.firstBuyRate).toFixed(2) }}% - {{ (row.nextPrice.highSaleRate + row.nextPrice.lowBuyRate).toFixed(2) }}%
               </div>
+            </div>
+          </div>
+          <div v-show="isShowBacktestingLog"
+               class="backtesting-log-bg">
+            <div class="backtesting-log-container">
+              <div v-for="(item,index) in backtestingLogs"
+                   :key="index"
+                   class="backtesting-log-item">{{ item }}
+              </div>
+              <el-button type="danger"
+                         :icon="CircleClose"
+                         @click="closeBacktesting">看完了
+              </el-button>
             </div>
           </div>
         </div>
@@ -488,6 +520,7 @@ onBeforeUnmount(() => {
           line-height: 1.7;
           border: 1px solid #c0c4cc;
           border-radius: 0.25rem;
+          width: 14.2rem;
           &::after {
             content: '';
             position: absolute;
@@ -532,10 +565,10 @@ onBeforeUnmount(() => {
         .cus-column {
           @extend .text-over;
           .stock-name {
-            width: 84%;
+            flex: 1;
             @extend .text-over;
           }
-          .btn-delete {
+          .btn-opt {
             margin-left: 1rem;
           }
         }
@@ -556,6 +589,33 @@ onBeforeUnmount(() => {
         }
         .low-buy-price {
           background: rgb(34 237 174);
+        }
+      }
+      .backtesting-log-bg {
+        @extend .flex-center;
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100vh;
+        background-color: rgba(0, 0, 0, 0.6);
+        .backtesting-log-container {
+          background-color: #fff;
+          width: 88%;
+          height: 80vh;
+          overflow: scroll;
+          padding: 0 0 0.8rem 0;
+          .backtesting-log-item {
+            line-height: 1.7;
+            margin: 0.6rem 0;
+            text-align: left;
+            border-radius: 0.25rem;
+            background: #ecf5ff;
+            color: #409eff;
+            padding: 0.3rem 0.6rem;
+          }
         }
       }
     }
