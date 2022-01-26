@@ -308,7 +308,7 @@ onBeforeUnmount(() => {
       </header>
       <main>
         <div v-if="historyRows"
-             class="next-price-box clear">
+             class="next-price-box">
           <div v-for="(row, index) in historyRows"
                :key="index"
                class="cus-table next-price">
@@ -446,10 +446,13 @@ onBeforeUnmount(() => {
       }
     }
     .next-price-box {
-      margin-top: 1rem;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 1rem auto 0;
       .next-price {
-        width: 22.4rem;
-        float: left;
+        width: 24.4rem;
         margin: 0 0.6rem 0.6rem 0;
         color: #000;
         font-size: 1.2rem;
@@ -481,6 +484,27 @@ onBeforeUnmount(() => {
         }
         .low-buy-price {
           background: rgb(34 237 174);
+        }
+      }
+    }
+    @media only screen and (max-width: 98rem) {
+      .next-price-box {
+        .next-price {
+          width: 32.4%;
+        }
+      }
+    }
+    @media only screen and (max-width: 73rem) {
+      .next-price-box {
+        .next-price {
+          width: 48.4%;
+        }
+      }
+    }
+    @media only screen and (max-width: 49rem) {
+      .next-price-box {
+        .next-price {
+          width: 100%;
         }
       }
     }
