@@ -10,6 +10,7 @@ import { IHistoryRow } from './api/stock/model/IHistoryRow';
 
 const historySearchResultKey = 'history_search_results';
 const nextSwitch = ref(true);
+const isShowSearchResult = ref(false);
 const searchKeyword = ref('');
 const searchResultRows = ref<ISearchResultRow[]>();
 const historyRows = ref<IHistoryRow[]>();
@@ -17,6 +18,7 @@ const loading = ref(false);
 // 是否交易时间内
 const dateNowHM = Number(formatNow('Hmm'));
 const isTradeTime = dateNowHM >= 930 && dateNowHM <= 1500;
+const isShowNextSwitchChange = window.screen.width > 500 && !isTradeTime;
 
 // 最小网格比例0.8%
 const minGridRate = 0.008;
@@ -27,21 +29,26 @@ const gridCount = ref(400);
 const holdCount = ref(0);
 const totalMoney = ref(100000);
 const nextPriceTimer = ref(0);
-const secid = computed(() => {
-  if (!searchKeyword.value) {
-    return '';
+const secid = ref('');
+
+const changeSearchResultShow = (isShow: boolean) => {
+  if (isShow) {
+    isShowSearchResult.value = isShow;
+  } else {
+    setTimeout(() => {
+      isShowSearchResult.value = isShow;
+    }, 300);
   }
-  return searchKeyword.value.split('_')[0];
-});
+};
 
 const nextSwitchChange = async () => {
   initNextPriceList();
 };
 
-const query = async (keyword: string) => {
-  if (keyword) {
+const query = async () => {
+  if (searchKeyword.value) {
     loading.value = true;
-    const searchResults = await search(keyword);
+    const searchResults = await search(searchKeyword.value);
     searchResultRows.value = searchResults.Data || [];
     loading.value = false;
   } else {
@@ -67,11 +74,10 @@ const updateHistory = (newHistory: IHistoryRow) => {
   localStorage.setItem(historySearchResultKey, JSON.stringify(historys));
 };
 
-const selectChange = async () => {
-  if (!secid.value) {
-    return;
-  }
-  return calcNext(secid.value);
+const selectChange = async (val: string) => {
+  console.log(`selectChange : `, val);
+  secid.value = val;
+  return calcNext(val);
 };
 // 下次价格预测
 const calcNext = async (secid: string) => {
@@ -279,28 +285,37 @@ onBeforeUnmount(() => {
     </header>
     <main class="main">
       <header class="search">
-        <el-switch v-if="!isTradeTime"
+        <el-switch v-if="isShowNextSwitchChange"
                    v-model="nextSwitch"
                    inline-prompt
                    active-text="预"
                    inactive-text="回"
                    @change="nextSwitchChange" />
-        <el-select class="stock-selelct"
-                   size="large"
-                   v-model="searchKeyword"
-                   :clearable="true"
-                   filterable
-                   remote
-                   reserve-keyword
-                   placeholder="请选择股票/基金"
-                   :remote-method="query"
-                   :loading="loading"
-                   @change="selectChange">
-          <el-option v-for="item in searchResultRows"
-                     :key="`${item.MktNum}.${item.Code}_${item.Name}`"
-                     :label="`${item.Code} ${item.Name} ${item.SecurityTypeName}`"
-                     :value="`${item.MktNum}.${item.Code}_${item.Name}`"></el-option>
-        </el-select>
+        <div class="stock-search">
+          <input class="stock-search-input"
+                 type="text"
+                 placeholder="请输入股票/基金代码"
+                 v-model="searchKeyword"
+                 @focus="changeSearchResultShow(true)"
+                 @blur="changeSearchResultShow(false)"
+                 @input="query">
+          <div v-show="isShowSearchResult">
+            <ul v-if="searchResultRows && searchResultRows.length > 0"
+                class="stock-search-result">
+              <li v-for="item in searchResultRows"
+                  :key="`${item.MktNum}.${item.Code}_${item.Name}`"
+                  @click="selectChange(`${item.MktNum}.${item.Code}`)">{{`${item.Code} ${item.Name} ${item.SecurityTypeName}`}}</li>
+            </ul>
+            <ul v-else-if="searchKeyword.length > 0"
+                class="stock-search-result">
+              <li>暂无相关股票/基金</li>
+            </ul>
+            <ul v-else
+                class="stock-search-result">
+              <li>输入股票/基金 编码/简拼/全拼/中文</li>
+            </ul>
+          </div>
+        </div>
         <el-button class="btn-backtesting"
                    size="large"
                    type="danger"
@@ -377,7 +392,6 @@ onBeforeUnmount(() => {
   max-width: 117rem;
   min-height: 100vh;
   margin: 0 auto;
-  padding: 1rem;
 
   .flex-center {
     display: flex;
@@ -438,8 +452,66 @@ onBeforeUnmount(() => {
   .main {
     padding-bottom: 2rem;
     .search {
-      .stock-selelct {
+      @extend .flex-center;
+      .stock-search {
+        position: relative;
+        width: 15rem;
         margin-left: 1rem;
+        .stock-search-input {
+          height: 2.5rem;
+          line-height: 2.5rem;
+          border: 1px solid #c0c4cc;
+          border-radius: 0.25rem;
+          padding: 0 1rem;
+          cursor: pointer;
+          display: inline-flex;
+          color: #606266;
+          font-size: inherit;
+          &:focus {
+            border: none;
+            outline: none;
+            box-shadow: none;
+            box-shadow: 0 0 0 1px #409eff;
+          }
+          &::placeholder {
+            color: #c0c4cc;
+          }
+        }
+        .stock-search-result {
+          background: #fff;
+          z-index: 2028;
+          position: absolute;
+          left: 0.4rem;
+          top: 2.4rem;
+          list-style: none;
+          padding: 0.38rem 0;
+          line-height: 1.7;
+          border: 1px solid #c0c4cc;
+          border-radius: 0.25rem;
+          &::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: -1rem;
+            border-bottom: 1rem solid rgba(192, 196, 204, 0.4);
+            border-left: solid transparent;
+            border-right: solid transparent;
+            border-width: 1rem;
+            margin-left: -1rem;
+          }
+          li {
+            @extend .text-over;
+            color: #606266;
+            font-size: 0.88rem;
+            height: 2.12rem;
+            line-height: 2.12rem;
+            cursor: pointer;
+            padding: 0 1rem;
+            &:hover {
+              background: #f5f7fa;
+            }
+          }
+        }
       }
       .btn-backtesting {
         margin-left: 1rem;
@@ -447,13 +519,13 @@ onBeforeUnmount(() => {
     }
     .next-price-box {
       display: flex;
-      justify-content: flex-start;
+      justify-content: space-around;
       align-items: center;
       flex-wrap: wrap;
       margin: 1rem auto 0;
       .next-price {
         width: 24.4rem;
-        margin: 0 0.6rem 0.6rem 0;
+        margin: 0 0 0.6rem 0;
         color: #000;
         font-size: 1.2rem;
         font-weight: 600;
