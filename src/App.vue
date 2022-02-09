@@ -445,15 +445,19 @@ onBeforeUnmount(() => {
             </div>
           </div>
           <div class="next-price-box invisible" v-for="i in historyFillRowCount" :key="i"></div>
-          <div class="backtesting-log-bg" v-show="isShowBacktestingLog">
-            <div class="backtesting-log-box">
+          <div
+            class="backtesting-log-bg"
+            v-show="isShowBacktestingLog"
+            @click.stop="closeBacktesting"
+          >
+            <div class="backtesting-log-box" @click.stop>
               <div
                 class="backtesting-log-item"
                 v-for="(item, index) in backtestingLogs"
                 :key="index"
               >{{ item }}</div>
               <div class="flex-center p-4">
-                <el-button type="danger" :icon="CircleClose" @click="closeBacktesting">看完了</el-button>
+                <el-button type="danger" :icon="CircleClose" @click.stop="closeBacktesting">看完了</el-button>
               </div>
             </div>
           </div>
@@ -533,7 +537,7 @@ onBeforeUnmount(() => {
   .backtesting-log-box {
     @apply relative bg-white border rounded-sm max-w-[90%] sm:max-w-[60%] max-h-[80vh] overflow-auto text-base text-gray-500 font-thin;
     .backtesting-log-item {
-      @apply w-full px-4 border-b leading-loose cursor-pointer hover:bg-gray-300;
+      @apply w-full px-4 border-b leading-loose cursor-pointer hover:bg-gray-400;
     }
   }
 }
