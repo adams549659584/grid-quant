@@ -20,6 +20,22 @@ const dateNowHM = Number(formatNow('Hmm'));
 const isTradeTime = dateNowHM >= 930 && dateNowHM <= 1500;
 // const isShowNextSwitchChange = window.screen.width > 500 && !isTradeTime;
 const isShowNextSwitchChange = !isTradeTime;
+// 填充保持观感
+const historyFillRowCount = computed(() => {
+  if (!historyRows.value || historyRows.value.length === 0) {
+    return 0;
+  }
+  const nowCount = historyRows.value.length;
+  const screenWidth = window.screen.width;
+  if (screenWidth >= 1280) {
+    return 4 - (nowCount % 4);
+  } else if (screenWidth >= 1024) {
+    return 3 - (nowCount % 3);
+  } else if (screenWidth >= 768) {
+    return 2 - (nowCount % 2);
+  }
+  return 0;
+});
 
 // 最小网格比例0.8%
 const minGridRate = 0.008;
@@ -264,6 +280,7 @@ const initNextPriceList = async () => {
   if (historyRows.value.length > 0) {
     historyRows.value.forEach((row) => calcNext(`${row.market}.${row.code}`));
   } else {
+    // '510050','159602','561990','510500','512100','516970','159928','512670','516110','512000','512480','515790','159867','159790','512760','516100','159997','159755','512980','159828','159883','513050','513330','159967','159745','512200','159825','159996','159992','515250','516780','511220','511260','159905','511380','513500','161834','501022','159981','512890'
     ['1.000001', '1.000300', '1.000905', '0.399006'].forEach((secid) => calcNext(secid));
   }
   if (isTradeTime) {
@@ -284,49 +301,44 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="container">
-    <header class="header">
+  <div>
+    <header>
       <h1 class="flex-center">
-        <span>价格预测</span>
-        <a class="flex-center"
-           href="https://github.com/adams549659584/grid-quant"
-           target="_blank">
-          <img class="github-link"
-               src="./assets/images/github.png"
-               alt="https://github.com/adams549659584/grid-quant" />
+        <span class="title">价格预测</span>
+        <a class="cursor-pointer" href="https://github.com/adams549659584/grid-quant" target="_blank">
+          <img src="./assets/images/github.png" alt="https://github.com/adams549659584/grid-quant" />
         </a>
       </h1>
     </header>
-    <main class="main">
-      <header class="search">
-        <el-switch v-if="isShowNextSwitchChange"
-                   v-model="nextSwitch"
-                   inline-prompt
-                   active-text="预"
-                   inactive-text="回"
-                   @change="nextSwitchChange" />
-        <div class="stock-search">
-          <input class="stock-search-input"
-                 type="text"
-                 placeholder="请输入股票/基金代码"
-                 v-model="searchKeyword"
-                 @focus="changeSearchResultShow(true)"
-                 @blur="changeSearchResultShow(false)"
-                 @input="query">
-          <div v-show="isShowSearchResult">
-            <ul v-if="searchResultRows && searchResultRows.length > 0"
-                class="stock-search-result">
-              <li v-for="item in searchResultRows"
-                  :key="`${item.MktNum}.${item.Code}_${item.Name}`"
-                  @click="selectChange(`${item.MktNum}.${item.Code}`)">{{`${item.Code} ${item.Name} ${item.SecurityTypeName}`}}</li>
+    <main>
+      <header class="flex-center space-x-4">
+        <el-switch v-if="isShowNextSwitchChange" v-model="nextSwitch" inline-prompt active-text="预" inactive-text="回" @change="nextSwitchChange" />
+        <div>
+          <input
+            class="input-search"
+            type="text"
+            placeholder="请输入股票/基金代码"
+            v-model="searchKeyword"
+            @focus="changeSearchResultShow(true)"
+            @blur="changeSearchResultShow(false)"
+            @input="query"
+          />
+          <div class="absolute" v-show="isShowSearchResult">
+            <ul class="search-hotkey" v-if="searchResultRows && searchResultRows.length > 0">
+              <li
+                class="search-hotkey-items"
+                v-for="item in searchResultRows"
+                :key="`${item.MktNum}.${item.Code}_${item.Name}`"
+                @click="selectChange(`${item.MktNum}.${item.Code}`)"
+              >
+                {{ `${item.Code} ${item.Name} ${item.SecurityTypeName}` }}
+              </li>
             </ul>
-            <ul v-else-if="searchKeyword.length > 0"
-                class="stock-search-result">
-              <li>暂无相关股票/基金</li>
+            <ul class="search-hotkey" v-else-if="searchKeyword.length > 0">
+              <li class="search-hotkey-items">暂无相关股票/基金</li>
             </ul>
-            <ul v-else
-                class="stock-search-result">
-              <li>输入股票/基金 编码/简拼/全拼/中文</li>
+            <ul class="search-hotkey" v-else>
+              <li class="search-hotkey-items">输入股票/基金 编码/简拼/全拼/中文</li>
             </ul>
           </div>
         </div>
@@ -336,76 +348,57 @@ onBeforeUnmount(() => {
                    @click="backtesting">回测</el-button> -->
       </header>
       <main>
-        <div v-if="historyRows"
-             class="next-price-box">
-          <div v-for="(row, index) in historyRows"
-               :key="index"
-               class="cus-table next-price">
-            <div class="cus-row cus-row-header">
-              <div class="cus-column">
-                <span class="stock-name">{{ `${row.code} ${row.name}` }}</span>
-                <el-button class="btn-opt"
-                           type="primary"
-                           :icon="CaretRight"
-                           circle
-                           @click="backtesting(`${row.market}.${row.code}`)"></el-button>
-                <el-button class="btn-opt"
-                           type="danger"
-                           :icon="Delete"
-                           circle
-                           @click="delHistory(row)"></el-button>
+        <div class="flex-center justify-around text-xl font-bold" v-if="historyRows">
+          <div class="next-price-box" v-for="(row, index) in historyRows" :key="index">
+            <div class="row p-2">
+              <span class="flex-1 text-center truncate">{{ `${row.code} ${row.name}` }}</span>
+              <el-button class="w-min" type="primary" :icon="CaretRight" circle @click="backtesting(`${row.market}.${row.code}`)"></el-button>
+              <el-button class="w-min" type="danger" :icon="Delete" circle @click="delHistory(row)"></el-button>
+            </div>
+            <div class="row">
+              <div class="column">操作</div>
+              <div class="column" :class="{ 'close-price-red': row.nowPrice.closePrice > (row.nextPrice.firstSalePrice + row.nextPrice.firstBuyPrice) / 2 }">
+                价格({{ row.nowPrice.closePrice.toFixed(3) }})
               </div>
             </div>
-            <div class="cus-row cus-row-header">
-              <div class="cus-column">操作</div>
-              <div class="cus-column close-price"
-                   :class="{'close-price-red':row.nowPrice.closePrice > (row.nextPrice.firstSalePrice + row.nextPrice.firstBuyPrice)/2}">价格({{ row.nowPrice.closePrice.toFixed(3) }})</div>
+            <div class="row bg-red-400">
+              <div class="column">极限获利位</div>
+              <div class="column">{{ row.nextPrice.highSalePrice.toFixed(3) }}(+{{ row.nextPrice.highSaleRate }}%)</div>
             </div>
-            <div class="cus-row high-sale-price">
-              <div class="cus-column">极限获利位</div>
-              <div class="cus-column">{{ row.nextPrice.highSalePrice.toFixed(3) }}(+{{ row.nextPrice.highSaleRate }}%)</div>
+            <div class="row bg-red-300">
+              <div class="column">第一压力位</div>
+              <div class="column">{{ row.nextPrice.firstSalePrice.toFixed(3) }}(+{{ row.nextPrice.firstSaleRate }}%)</div>
             </div>
-            <div class="cus-row first-sale-price">
-              <div class="cus-column">第一压力位</div>
-              <div class="cus-column">{{ row.nextPrice.firstSalePrice.toFixed(3) }}(+{{ row.nextPrice.firstSaleRate }}%)</div>
+            <div class="row bg-green-300">
+              <div class="column">第一支撑位</div>
+              <div class="column">{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate }}%)</div>
             </div>
-            <div class="cus-row first-buy-price">
-              <div class="cus-column">第一支撑位</div>
-              <div class="cus-column">{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate }}%)</div>
+            <div class="row bg-green-400">
+              <div class="column">极限抄底位</div>
+              <div class="column">{{ row.nextPrice.lowBuyPrice.toFixed(3) }}(-{{ row.nextPrice.lowBuyRate }}%)</div>
             </div>
-            <div class="cus-row low-buy-price">
-              <div class="cus-column">极限抄底位</div>
-              <div class="cus-column">{{ row.nextPrice.lowBuyPrice.toFixed(3) }}(-{{ row.nextPrice.lowBuyRate }}%)</div>
-            </div>
-            <div class="cus-row">
-              <div class="cus-column">振幅</div>
-              <div class="cus-column">
+            <div class="row">
+              <div class="column">振幅</div>
+              <div class="column">
                 {{ (row.nextPrice.firstSaleRate + row.nextPrice.firstBuyRate).toFixed(2) }}% - {{ (row.nextPrice.highSaleRate + row.nextPrice.lowBuyRate).toFixed(2) }}%
               </div>
             </div>
           </div>
-          <div v-show="isShowBacktestingLog"
-               class="backtesting-log-bg">
-            <div class="backtesting-log-container">
-              <div v-for="(item,index) in backtestingLogs"
-                   :key="index"
-                   class="backtesting-log-item">{{ item }}
-              </div>
-              <el-button type="danger"
-                         :icon="CircleClose"
-                         @click="closeBacktesting">看完了
-              </el-button>
+          <div class="next-price-box invisible" v-for="i in historyFillRowCount" :key="i"></div>
+          <div v-show="isShowBacktestingLog">
+            <div>
+              <div v-for="(item, index) in backtestingLogs" :key="index">{{ item }}</div>
+              <el-button type="danger" :icon="CircleClose" @click="closeBacktesting">看完了 </el-button>
             </div>
           </div>
         </div>
       </main>
     </main>
-    <footer class="footer">
+    <footer>
       <div>
-        <p class="text">
+        <p>
           MIT Licensed | Copyright © 2022
-          <a href="https://github.com/adams549659584"
-             target="_blank">adams549659584</a>
+          <a href="https://github.com/adams549659584" target="_blank">adams549659584</a>
         </p>
       </div>
     </footer>
@@ -413,236 +406,51 @@ onBeforeUnmount(() => {
 </template>
 
 <style lang="scss">
-@import 'assets/css/reset.css';
+.flex-center {
+  @apply flex justify-center items-center flex-wrap;
+}
 
-.container {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  max-width: 117rem;
-  min-height: 100vh;
-  margin: 0 auto;
+.title {
+  @apply text-3xl font-bold p-4;
+}
 
-  .flex-center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-  .cus-table {
-    .cus-row {
-      @extend .flex-center;
-      border: 0.01rem solid #dcdfe6;
-      width: 100%;
-      &:not(:first-child) {
-        border-top: none;
-      }
-      &.cus-row-header {
-        font-size: 1.4rem;
-        font-weight: bold;
-      }
-      .cus-column {
-        @extend .flex-center;
-        border-left: 0.01rem solid #dcdfe6;
-        flex: 1;
-        padding: 0.8rem;
-        &:first-child {
-          border-left: none;
-        }
-      }
-    }
-  }
+.input-search {
+  @apply border p-2 rounded-sm hover:border-blue-500 cursor-pointer focus:border-blue-500 
+  focus:outline-none;
+}
 
-  .text {
-    margin: 0;
-    text-align: center;
-    line-height: 1.4;
-    font-size: 0.9rem;
-    color: var(--c-text-light);
-  }
-  .text-over {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .clear {
-    &::after {
-      content: '';
-      display: block;
-      clear: both;
+.up-arrow {
+  @apply before:absolute before:p-2 before:-top-2 before:left-1/2 before:-translate-x-1/2 before:rotate-45 
+  before:before:border-t before:border-l before:bg-inherit before:z-0;
+}
+
+.search-hotkey {
+  @apply relative bg-white top-4 left-0 border rounded-sm z-10;
+  @extend .up-arrow;
+}
+.search-hotkey-items {
+  @apply p-2 w-48 truncate rounded-sm cursor-pointer hover:bg-gray-100;
+}
+
+.next-price-box {
+  @apply border outline-2 mt-4 w-[98%]
+   md:w-[49%]
+   lg:w-[32.3%]
+   xl:w-[24%];
+
+  .row {
+    @extend .flex-center;
+    @apply border-b;
+
+    &:last-child {
+      @apply border-b-0;
     }
   }
-  .header {
-    padding: 1rem;
-    .github-link {
-      width: 1.2rem;
-      margin-left: 0.4rem;
+  .column {
+    &:first-child {
+      @apply border-r;
     }
-  }
-  .main {
-    padding-bottom: 2rem;
-    .search {
-      @extend .flex-center;
-      .stock-search {
-        position: relative;
-        width: 15rem;
-        margin-left: 1rem;
-        .stock-search-input {
-          height: 2.5rem;
-          line-height: 2.5rem;
-          border: 1px solid #c0c4cc;
-          border-radius: 0.25rem;
-          padding: 0 1rem;
-          cursor: pointer;
-          display: inline-flex;
-          color: #606266;
-          font-size: inherit;
-          &:focus {
-            border: none;
-            outline: none;
-            box-shadow: none;
-            box-shadow: 0 0 0 1px #409eff;
-          }
-          &::placeholder {
-            color: #c0c4cc;
-          }
-        }
-        .stock-search-result {
-          background: #fff;
-          z-index: 2028;
-          position: absolute;
-          left: 0.4rem;
-          top: 2.4rem;
-          list-style: none;
-          padding: 0.38rem 0;
-          line-height: 1.7;
-          border: 1px solid #c0c4cc;
-          border-radius: 0.25rem;
-          width: 14.2rem;
-          &::after {
-            content: '';
-            position: absolute;
-            left: 50%;
-            top: -1rem;
-            border-bottom: 1rem solid rgba(192, 196, 204, 0.4);
-            border-left: solid transparent;
-            border-right: solid transparent;
-            border-width: 1rem;
-            margin-left: -1rem;
-          }
-          li {
-            @extend .text-over;
-            color: #606266;
-            font-size: 0.88rem;
-            height: 2.12rem;
-            line-height: 2.12rem;
-            cursor: pointer;
-            padding: 0 1rem;
-            &:hover {
-              background: #f5f7fa;
-            }
-          }
-        }
-      }
-      .btn-backtesting {
-        margin-left: 1rem;
-      }
-    }
-    .next-price-box {
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      flex-wrap: wrap;
-      margin: 1rem auto 0;
-      .next-price {
-        width: 24.4rem;
-        margin: 0 0 0.6rem 0;
-        color: #000;
-        font-size: 1.2rem;
-        font-weight: 600;
-        .cus-column {
-          @extend .text-over;
-          .stock-name {
-            flex: 1;
-            @extend .text-over;
-          }
-          .btn-opt {
-            margin-left: 1rem;
-          }
-        }
-        .close-price {
-          color: green;
-          &.close-price-red {
-            color: red;
-          }
-        }
-        .high-sale-price {
-          background: rgb(239 118 118);
-        }
-        .first-sale-price {
-          background: rgb(251 162 162);
-        }
-        .first-buy-price {
-          background: rgb(100 246 225);
-        }
-        .low-buy-price {
-          background: rgb(34 237 174);
-        }
-      }
-      .backtesting-log-bg {
-        @extend .flex-center;
-        position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 100vh;
-        background-color: rgba(0, 0, 0, 0.6);
-        .backtesting-log-container {
-          background-color: #fff;
-          width: 88%;
-          height: 80vh;
-          overflow: scroll;
-          padding: 0 0 0.8rem 0;
-          .backtesting-log-item {
-            line-height: 1.7;
-            margin: 0.6rem 0;
-            text-align: left;
-            border-radius: 0.25rem;
-            background: #ecf5ff;
-            color: #409eff;
-            padding: 0.3rem 0.6rem;
-          }
-        }
-      }
-    }
-    @media only screen and (max-width: 98rem) {
-      .next-price-box {
-        .next-price {
-          width: 32.4%;
-        }
-      }
-    }
-    @media only screen and (max-width: 73rem) {
-      .next-price-box {
-        .next-price {
-          width: 48.4%;
-        }
-      }
-    }
-    @media only screen and (max-width: 49rem) {
-      .next-price-box {
-        .next-price {
-          width: 100%;
-        }
-      }
-    }
-  }
-  .footer {
-    padding-bottom: 1rem;
+    @apply text-center truncate w-1/2 p-2;
   }
 }
 </style>
