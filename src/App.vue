@@ -417,25 +417,25 @@ onBeforeUnmount(() => {
               <div class="column">极限获利位</div>
               <div
                 class="column"
-              >{{ row.nextPrice.highSalePrice.toFixed(3) }}(+{{ row.nextPrice.highSaleRate }}%)</div>
+              >{{ row.nextPrice.highSalePrice.toFixed(3) }}(+{{ row.nextPrice.highSaleRate.toFixed(2) }}%)</div>
             </div>
             <div class="row bg-red-300">
               <div class="column">第一压力位</div>
               <div
                 class="column"
-              >{{ row.nextPrice.firstSalePrice.toFixed(3) }}(+{{ row.nextPrice.firstSaleRate }}%)</div>
+              >{{ row.nextPrice.firstSalePrice.toFixed(3) }}(+{{ row.nextPrice.firstSaleRate.toFixed(2) }}%)</div>
             </div>
             <div class="row bg-green-300">
               <div class="column">第一支撑位</div>
               <div
                 class="column"
-              >{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate }}%)</div>
+              >{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate.toFixed(2) }}%)</div>
             </div>
             <div class="row bg-green-400">
               <div class="column">极限抄底位</div>
               <div
                 class="column"
-              >{{ row.nextPrice.lowBuyPrice.toFixed(3) }}(-{{ row.nextPrice.lowBuyRate }}%)</div>
+              >{{ row.nextPrice.lowBuyPrice.toFixed(3) }}(-{{ row.nextPrice.lowBuyRate.toFixed(2) }}%)</div>
             </div>
             <div class="row">
               <div class="column">振幅</div>
