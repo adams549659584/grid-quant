@@ -7,6 +7,7 @@ import { formatNow } from './helpers/DateHelper';
 import { calcNextPrice, mathRound } from './helpers/StockHelper';
 import { Delete, CaretRight, CircleClose } from '@element-plus/icons-vue';
 import { IHistoryRow } from './api/stock/model/IHistoryRow';
+import { IKLineRow } from './api/stock/model/IKLineResult';
 
 const historySearchResultKey = 'history_search_results';
 const nextSwitch = ref(true);
@@ -152,10 +153,19 @@ const backtesting = async (secid: string) => {
     let lastClosePrice = firstKline.closePrice;
     let klineNextPrice = calcNextPrice(lastClosePrice, lastHighPrice, lastLowPrice);
     let optRate = mathRound((klineNextPrice.firstSalePrice - klineNextPrice.firstBuyPrice) / ((klineNextPrice.firstSalePrice + klineNextPrice.firstBuyPrice) / 2), 2);
+    // 网格幅度
     let gridRate = mathRound(optRate / minGridOptCount.value);
     if (gridRate < minGridRate) {
       gridRate = minGridRate;
     }
+    // 每次委托数,每次2000元
+    gridCount.value = Math.round(2000 / lastClosePrice / 100) * 100;
+    // 至少100
+    if (gridCount.value === 0) {
+      gridCount.value = 100;
+    }
+    // 最低持仓2份
+    minHoldCount.value = gridCount.value * 2;
     // backtestingLogs.value.push(`gridRate : ${(gridRate * 100).toFixed(2)}%`);
     let todayOpenPrice = firstKline.openPrice;
     let lastOptPrice = todayOpenPrice;
@@ -210,6 +220,7 @@ const backtesting = async (secid: string) => {
       const klineRate = kline.openPrice / lastOptPrice - 1;
       if (Math.abs(klineRate) > gridRate) {
         if (holdCount.value > 0 && kline.openPrice > klineNextPrice.highSalePrice) {
+          // 极限获利位止盈
           const saleCount = holdCount.value;
           const money = mathRound(saleCount * kline.openPrice, 2);
           lastOptPrice = kline.openPrice;
@@ -221,16 +232,27 @@ const backtesting = async (secid: string) => {
             } ， 市值 ￥${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`
           );
         } else if (holdCount.value > 0 && kline.openPrice < klineNextPrice.lowBuyPrice) {
-          const saleCount = holdCount.value;
-          const money = mathRound(saleCount * kline.openPrice, 2);
-          lastOptPrice = kline.openPrice;
-          holdCount.value = mathRound(holdCount.value - saleCount);
-          totalMoney.value = mathRound(totalMoney.value + money);
-          backtestingLogs.value.push(
-            `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 止损卖出 ${saleCount} 股 , 收入 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${
-              totalMoney.value
-            } ， 市值 ￥${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`
-          );
+          // 跌破极限抄底位2个点，止损
+          if (kline.openPrice < klineNextPrice.lowBuyPrice * 0.98) {
+            const saleCount = holdCount.value;
+            const money = mathRound(saleCount * kline.openPrice, 2);
+            lastOptPrice = kline.openPrice;
+            holdCount.value = mathRound(holdCount.value - saleCount);
+            totalMoney.value = mathRound(totalMoney.value + money);
+            backtestingLogs.value.push(
+              `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 止损卖出 ${saleCount} 股 , 收入 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${
+                totalMoney.value
+              } ， 市值 ￥${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`
+            );
+          } else {
+            // 极限抄底加倍
+            const gridBuyResult = gridBuy(kline, gridCount.value * 2);
+            if (gridBuyResult.isSuccess) {
+              lastOptPrice = gridBuyResult.lastOptPrice;
+            } else {
+              continue;
+            }
+          }
         } else if (klineRate > 0 && holdCount.value - gridCount.value >= minHoldCount.value) {
           const saleCount = gridCount.value;
           const money = mathRound(saleCount * kline.openPrice, 2);
@@ -243,25 +265,12 @@ const backtesting = async (secid: string) => {
             } ， 市值￥ ${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`
           );
         } else if (klineRate < 0 && kline.openPrice > klineNextPrice.lowBuyPrice) {
-          const buyCount = gridCount.value;
-          const money = mathRound(buyCount * kline.openPrice, 2);
-          if (totalMoney.value < money) {
-            backtestingLogs.value.push(
-              `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 余额 ￥${totalMoney.value} 不足以购买本次网格， 市值￥ ${(
-                kline.openPrice * holdCount.value +
-                totalMoney.value
-              ).toFixed(2)}`
-            );
+          const gridBuyResult = gridBuy(kline, gridCount.value);
+          if (gridBuyResult.isSuccess) {
+            lastOptPrice = gridBuyResult.lastOptPrice;
+          } else {
             continue;
           }
-          lastOptPrice = kline.openPrice;
-          holdCount.value = mathRound(holdCount.value + buyCount);
-          totalMoney.value = mathRound(totalMoney.value - money);
-          backtestingLogs.value.push(
-            `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 网格买入 ${buyCount} 股 , 支出 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${
-              totalMoney.value
-            } ， 市值￥ ${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`
-          );
         }
       }
     }
@@ -271,6 +280,28 @@ const backtesting = async (secid: string) => {
   } else {
     ElMessage.error('获取K线数据异常');
   }
+};
+
+const gridBuy = (kline: IKLineRow, buyCount: number): { isSuccess: boolean; lastOptPrice: number } => {
+  const money = mathRound(buyCount * kline.openPrice, 2);
+  if (totalMoney.value < money) {
+    backtestingLogs.value.push(
+      `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 余额 ￥${totalMoney.value} 不足以购买本次网格， 市值￥ ${(
+        kline.openPrice * holdCount.value +
+        totalMoney.value
+      ).toFixed(2)}`
+    );
+    return { isSuccess: false, lastOptPrice: 0 };
+  }
+  holdCount.value = mathRound(holdCount.value + buyCount);
+  totalMoney.value = mathRound(totalMoney.value - money);
+  backtestingLogs.value.push(
+    `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 网格买入 ${buyCount} 股 , 支出 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${totalMoney.value} ， 市值￥ ${(
+      kline.openPrice * holdCount.value +
+      totalMoney.value
+    ).toFixed(2)}`
+  );
+  return { isSuccess: true, lastOptPrice: kline.openPrice };
 };
 
 const closeBacktesting = async () => {
@@ -437,7 +468,19 @@ onBeforeUnmount(() => {
           <div class="next-price-box invisible" v-for="i in historyFillRowCount" :key="i"></div>
           <div class="backtesting-log-bg" v-show="isShowBacktestingLog" @click.stop="closeBacktesting">
             <div class="backtesting-log-box" @click.stop>
-              <div class="backtesting-log-item" v-for="(item, index) in backtestingLogs" :key="index">{{ item }}</div>
+              <div
+                class="backtesting-log-item"
+                v-for="(item, index) in backtestingLogs"
+                :key="index"
+                :class="{
+                  'log-buy': item.includes('网格买入'),
+                  'log-sale': item.includes('网格卖出'),
+                  'log-stop-profit': item.includes('止盈卖出'),
+                  'log-stop-loss': item.includes('止损卖出')
+                }"
+              >
+                {{ item }}
+              </div>
               <div class="flex-center p-4">
                 <el-button type="danger" :icon="CircleClose" @click.stop="closeBacktesting">看完了</el-button>
               </div>
@@ -517,9 +560,21 @@ onBeforeUnmount(() => {
   @apply fixed top-0 left-0 w-full h-full bg-black/60;
   @extend .flex-center;
   .backtesting-log-box {
-    @apply relative bg-white border rounded-sm max-w-[90%] sm:max-w-[60%] max-h-[80vh] overflow-auto text-base text-gray-900 font-thin;
+    @apply relative bg-white border rounded-sm max-w-[90%] sm:max-w-[60%] max-h-[80vh] overflow-auto text-base text-black font-light;
     .backtesting-log-item {
       @apply w-full px-4 border-b leading-loose cursor-pointer hover:bg-gray-400;
+      &.log-buy {
+        @apply bg-red-300;
+      }
+      &.log-sale {
+        @apply bg-green-300;
+      }
+      &.log-stop-profit {
+        @apply bg-red-400;
+      }
+      &.log-stop-loss {
+        @apply bg-green-400;
+      }
     }
   }
 }
