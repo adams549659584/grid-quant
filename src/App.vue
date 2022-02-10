@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ElLoading, ElMessage } from 'element-plus';
+import { ElLoading, ElMessage, inputProps } from 'element-plus';
 import { computed, ref, onBeforeUnmount } from 'vue';
 import { ISearchResultRow } from './api/stock/model/ISearchResult';
 import { search, getKLineM5, getKLineD1 } from './api/stock/stock-api';
@@ -14,6 +14,7 @@ const nextSwitch = ref(true);
 const isShowSearchResult = ref(false);
 const searchKeyword = ref('');
 const searchResultRows = ref<ISearchResultRow[]>();
+const searchSelectedIndex = ref(0);
 const historyRows = ref<IHistoryRow[]>();
 const loading = ref(false);
 // 是否交易时间内
@@ -68,6 +69,7 @@ const nextSwitchChange = async () => {
 };
 
 const query = async () => {
+  searchSelectedIndex.value = 0;
   if (searchKeyword.value) {
     loading.value = true;
     const searchResults = await search(searchKeyword.value);
@@ -84,25 +86,49 @@ const getHistory = () => {
   }
   return JSON.parse(historyStr) as IHistoryRow[];
 };
-const updateHistory = (newHistory: IHistoryRow) => {
+const updateHistory = (newHistory: IHistoryRow, isMoveToFirst = false) => {
   let historys = getHistory();
-  const existHistoryIndex = historys.findIndex((x) => newHistory.market === x.market && newHistory.code === x.code && newHistory.name === x.name);
-  if (existHistoryIndex > -1) {
-    historys[existHistoryIndex] = newHistory;
-  } else {
+  const isExistHistoryPredicate = (x: IHistoryRow) => newHistory.market === x.market && newHistory.code === x.code && newHistory.name === x.name;
+  if (isMoveToFirst) {
+    historys = historys.filter((x) => !isExistHistoryPredicate(x));
     historys = [newHistory, ...historys];
+  } else {
+    const existHistoryIndex = historys.findIndex(isExistHistoryPredicate);
+    if (existHistoryIndex > -1) {
+      historys[existHistoryIndex] = newHistory;
+    } else {
+      historys = [newHistory, ...historys];
+    }
   }
   historyRows.value = historys;
   localStorage.setItem(historySearchResultKey, JSON.stringify(historys));
 };
+const searchHotkeyUp = (payload: KeyboardEvent) => {
+  if (searchResultRows.value && searchResultRows.value.length > 0) {
+    searchSelectedIndex.value = searchSelectedIndex.value > 0 ? searchSelectedIndex.value - 1 : searchResultRows.value.length - 1;
+  }
+  return false;
+}
+const searchHotkeyDown = (payload: KeyboardEvent) => {
+  if (searchResultRows.value && searchResultRows.value.length > 0) {
+    searchSelectedIndex.value = searchSelectedIndex.value < searchResultRows.value.length - 1 ? searchSelectedIndex.value + 1 : 0;
+  }
+  return false;
+}
+const searchHotkeyEnter = () => {
+  if (searchResultRows.value && searchResultRows.value.length > searchSelectedIndex.value) {
+    const selectResult = searchResultRows.value[searchSelectedIndex.value];
+    selectChange(`${selectResult.MktNum}.${selectResult.Code}`);
+  }
+}
 
 const selectChange = async (val: string) => {
   backtestingLogs.value.push(`selectChange : `, val);
   secid.value = val;
-  return calcNext(val);
+  return calcNext(val, true);
 };
 // 下次价格预测
-const calcNext = async (secid: string) => {
+const calcNext = async (secid: string, isMoveToFirst = false) => {
   const klineD1 = await getKLineD1(secid, 2);
   if (klineD1 && klineD1.data && klineD1.data.klineDatas && klineD1.data.klineDatas.length === 2) {
     const klineDatas = klineD1.data.klineDatas;
@@ -121,7 +147,7 @@ const calcNext = async (secid: string) => {
       name: klineD1.data.name,
       nowPrice: klineDatas[1],
       nextPrice
-    });
+    }, isMoveToFirst);
   } else {
     ElMessage.error('获取K线数据异常');
   }
@@ -212,8 +238,7 @@ const backtesting = async (secid: string) => {
         holdCount.value = mathRound(holdCount.value + buyCount);
         totalMoney.value = mathRound(totalMoney.value - money);
         backtestingLogs.value.push(
-          `${kline.dateStr} ${kline.timeStr}： 低于最小持仓，￥${kline.openPrice} 买入 ${buyCount} 股 , 支出 ￥${money} ， 持仓 ${holdCount.value} ， 余额 ￥${
-            totalMoney.value
+          `${kline.dateStr} ${kline.timeStr}： 低于最小持仓，￥${kline.openPrice} 买入 ${buyCount} 股 , 支出 ￥${money} ， 持仓 ${holdCount.value} ， 余额 ￥${totalMoney.value
           } ， 市值 ￥${(kline.closePrice * holdCount.value + totalMoney.value).toFixed(2)}`
         );
       }
@@ -227,8 +252,7 @@ const backtesting = async (secid: string) => {
           holdCount.value = mathRound(holdCount.value - saleCount);
           totalMoney.value = mathRound(totalMoney.value + money);
           backtestingLogs.value.push(
-            `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 止盈卖出 ${saleCount} 股 , 收入 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${
-              totalMoney.value
+            `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 止盈卖出 ${saleCount} 股 , 收入 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${totalMoney.value
             } ， 市值 ￥${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`
           );
         } else if (holdCount.value > 0 && kline.openPrice < klineNextPrice.lowBuyPrice) {
@@ -240,8 +264,7 @@ const backtesting = async (secid: string) => {
             holdCount.value = mathRound(holdCount.value - saleCount);
             totalMoney.value = mathRound(totalMoney.value + money);
             backtestingLogs.value.push(
-              `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 止损卖出 ${saleCount} 股 , 收入 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${
-                totalMoney.value
+              `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 止损卖出 ${saleCount} 股 , 收入 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${totalMoney.value
               } ， 市值 ￥${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`
             );
           } else {
@@ -260,8 +283,7 @@ const backtesting = async (secid: string) => {
           holdCount.value = mathRound(holdCount.value - saleCount);
           totalMoney.value = mathRound(totalMoney.value + money);
           backtestingLogs.value.push(
-            `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 网格卖出 ${saleCount} 股 , 收入 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${
-              totalMoney.value
+            `${kline.dateStr} ${kline.timeStr}：￥${kline.openPrice} 网格卖出 ${saleCount} 股 , 收入 ￥${money} ， 持仓 ${holdCount.value} ，  余额 ￥${totalMoney.value
             } ， 市值￥ ${(kline.openPrice * holdCount.value + totalMoney.value).toFixed(2)}`
           );
         } else if (klineRate < 0 && kline.openPrice > klineNextPrice.lowBuyPrice) {
@@ -373,6 +395,14 @@ const initNextPriceList = async () => {
 
 const init = () => {
   initNextPriceList();
+  const searchInput = document.querySelector('.input-search');
+  // if (searchInput) {
+  //   searchInput.addEventListener('keydown',(e)=>{
+  //     if (['ArrowUp'] (e as KeyboardEvent).key) {
+
+  //     }
+  //   })
+  // }
 };
 init();
 
@@ -386,14 +416,25 @@ onBeforeUnmount(() => {
     <header>
       <h1 class="flex-center">
         <span class="title">价格预测</span>
-        <a class="cursor-pointer" href="https://github.com/adams549659584/grid-quant" target="_blank">
+        <a
+          class="cursor-pointer"
+          href="https://github.com/adams549659584/grid-quant"
+          target="_blank"
+        >
           <img src="./assets/images/github.png" alt="https://github.com/adams549659584/grid-quant" />
         </a>
       </h1>
     </header>
     <main>
       <header class="flex-center space-x-4">
-        <el-switch v-if="isShowNextSwitchChange" v-model="nextSwitch" inline-prompt active-text="预" inactive-text="回" @change="nextSwitchChange" />
+        <el-switch
+          v-if="isShowNextSwitchChange"
+          v-model="nextSwitch"
+          inline-prompt
+          active-text="预"
+          inactive-text="回"
+          @change="nextSwitchChange"
+        />
         <div>
           <input
             class="input-search"
@@ -403,17 +444,19 @@ onBeforeUnmount(() => {
             @focus="changeSearchResultShow(true)"
             @blur="changeSearchResultShow(false)"
             @input="query"
+            @keydown.up="searchHotkeyUp"
+            @keydown.down="searchHotkeyDown"
+            @keydown.enter="searchHotkeyEnter"
           />
           <div class="absolute" v-show="isShowSearchResult">
             <ul class="search-hotkey" v-if="searchResultRows && searchResultRows.length > 0">
               <li
-                class="search-hotkey-items"
-                v-for="item in searchResultRows"
+                class="search-hotkey-items bg-"
+                :class="{ 'bg-gray-100': index === searchSelectedIndex }"
+                v-for="(item, index) in searchResultRows"
                 :key="`${item.MktNum}.${item.Code}_${item.Name}`"
                 @click="selectChange(`${item.MktNum}.${item.Code}`)"
-              >
-                {{ `${item.Code} ${item.Name} ${item.SecurityTypeName}` }}
-              </li>
+              >{{ `${item.Code} ${item.Name} ${item.SecurityTypeName}` }}</li>
             </ul>
             <ul class="search-hotkey" v-else-if="searchKeyword.length > 0">
               <li class="search-hotkey-items">暂无相关股票/基金</li>
@@ -433,40 +476,59 @@ onBeforeUnmount(() => {
           <div class="next-price-box" v-for="(row, index) in historyRows" :key="index">
             <div class="row p-2">
               <span class="flex-1 text-center truncate">{{ `${row.code} ${row.name}` }}</span>
-              <el-button class="w-min" type="primary" :icon="CaretRight" circle @click="backtesting(`${row.market}.${row.code}`)"></el-button>
+              <el-button
+                class="w-min"
+                type="primary"
+                :icon="CaretRight"
+                circle
+                @click="backtesting(`${row.market}.${row.code}`)"
+              ></el-button>
               <el-button class="w-min" type="danger" :icon="Delete" circle @click="delHistory(row)"></el-button>
             </div>
             <div class="row">
               <div class="column">操作</div>
-              <div class="column close-price-green" :class="{ 'close-price-red': row.nowPrice.closePrice >= (row.nextPrice.firstSalePrice + row.nextPrice.firstBuyPrice) / 2 }">
-                价格({{ row.nowPrice.closePrice.toFixed(3) }})
-              </div>
+              <div
+                class="column close-price-green"
+                :class="{ 'close-price-red': row.nowPrice.closePrice >= (row.nextPrice.firstSalePrice + row.nextPrice.firstBuyPrice) / 2 }"
+              >价格({{ row.nowPrice.closePrice.toFixed(3) }})</div>
             </div>
             <div class="row bg-red-400">
               <div class="column">极限获利位</div>
-              <div class="column">{{ row.nextPrice.highSalePrice.toFixed(3) }}(+{{ row.nextPrice.highSaleRate.toFixed(2) }}%)</div>
+              <div
+                class="column"
+              >{{ row.nextPrice.highSalePrice.toFixed(3) }}(+{{ row.nextPrice.highSaleRate.toFixed(2) }}%)</div>
             </div>
             <div class="row bg-red-300">
               <div class="column">第一压力位</div>
-              <div class="column">{{ row.nextPrice.firstSalePrice.toFixed(3) }}(+{{ row.nextPrice.firstSaleRate.toFixed(2) }}%)</div>
+              <div
+                class="column"
+              >{{ row.nextPrice.firstSalePrice.toFixed(3) }}(+{{ row.nextPrice.firstSaleRate.toFixed(2) }}%)</div>
             </div>
             <div class="row bg-green-300">
               <div class="column">第一支撑位</div>
-              <div class="column">{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate.toFixed(2) }}%)</div>
+              <div
+                class="column"
+              >{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate.toFixed(2) }}%)</div>
             </div>
             <div class="row bg-green-400">
               <div class="column">极限抄底位</div>
-              <div class="column">{{ row.nextPrice.lowBuyPrice.toFixed(3) }}(-{{ row.nextPrice.lowBuyRate.toFixed(2) }}%)</div>
+              <div
+                class="column"
+              >{{ row.nextPrice.lowBuyPrice.toFixed(3) }}(-{{ row.nextPrice.lowBuyRate.toFixed(2) }}%)</div>
             </div>
             <div class="row">
               <div class="column">振幅</div>
-              <div class="column">
-                {{ (row.nextPrice.firstSaleRate + row.nextPrice.firstBuyRate).toFixed(2) }}% - {{ (row.nextPrice.highSaleRate + row.nextPrice.lowBuyRate).toFixed(2) }}%
-              </div>
+              <div
+                class="column"
+              >{{ (row.nextPrice.firstSaleRate + row.nextPrice.firstBuyRate).toFixed(2) }}% - {{ (row.nextPrice.highSaleRate + row.nextPrice.lowBuyRate).toFixed(2) }}%</div>
             </div>
           </div>
           <div class="next-price-box invisible" v-for="i in historyFillRowCount" :key="i"></div>
-          <div class="backtesting-log-bg" v-show="isShowBacktestingLog" @click.stop="closeBacktesting">
+          <div
+            class="backtesting-log-bg"
+            v-show="isShowBacktestingLog"
+            @click.stop="closeBacktesting"
+          >
             <div class="backtesting-log-box" @click.stop>
               <div
                 class="backtesting-log-item"
@@ -478,9 +540,7 @@ onBeforeUnmount(() => {
                   'log-stop-profit': item.includes('止盈卖出'),
                   'log-stop-loss': item.includes('止损卖出')
                 }"
-              >
-                {{ item }}
-              </div>
+              >{{ item }}</div>
               <div class="flex-center p-4">
                 <el-button type="danger" :icon="CircleClose" @click.stop="closeBacktesting">看完了</el-button>
               </div>
