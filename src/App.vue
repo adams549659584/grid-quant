@@ -572,8 +572,7 @@ onBeforeUnmount(() => {
 }
 
 .up-arrow {
-  @apply before:absolute before:p-2 before:-top-2 before:left-1/2 before:-translate-x-1/2 before:rotate-45 
-  before:border-t before:border-l before:bg-inherit before:z-0;
+  @apply before:absolute before:block before:-top-[2rem] before:left-1/2 before:-translate-x-1/2 before:border-[1rem] before:border-transparent before:border-b-gray-100;
 }
 
 .search-hotkey {
