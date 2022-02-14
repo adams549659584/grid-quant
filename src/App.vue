@@ -473,9 +473,9 @@ onBeforeUnmount(() => {
         @click="backtesting">回测</el-button>-->
       </header>
       <main>
-        <!-- <div v-if="historyRows">
-          <div v-for="(row, index) in historyRows" :key="index">
-            <div>{{ `${row.code} ${row.name}（￥${row.nowPrice.closePrice.toFixed(3)}）` }}</div>
+        <!-- <div v-if="historyRows" class="flex-center justify-around">
+          <div v-for="(row, index) in historyRows" :key="index" class="border p-3 w-[11rem]">
+            <div class="w-full truncate">{{ `${row.name}(${row.nowPrice.closePrice.toFixed(3)})` }}</div>
             <div>{{ row.nextPrice.highSalePrice.toFixed(3) }}(+{{ row.nextPrice.highSaleRate.toFixed(2) }}%)</div>
             <div>{{ row.nextPrice.firstSalePrice.toFixed(3) }}(+{{ row.nextPrice.firstSaleRate.toFixed(2) }}%)</div>
             <div>{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate.toFixed(2) }}%)</div>
