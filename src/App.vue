@@ -8,6 +8,8 @@ import { calcNextPrice, mathRound } from './helpers/StockHelper';
 import { Delete, CaretRight, CircleClose } from '@element-plus/icons-vue';
 import { IHistoryRow } from './api/stock/model/IHistoryRow';
 import { IKLineRow } from './api/stock/model/IKLineResult';
+import BuyLogo from '@/components/icons/BuyLogo.vue';
+import SaleLogo from './components/icons/SaleLogo.vue';
 
 const historySearchResultKey = 'history_search_results';
 const nextSwitch = ref(true);
@@ -471,8 +473,21 @@ onBeforeUnmount(() => {
         @click="backtesting">回测</el-button>-->
       </header>
       <main>
+        <!-- <div v-if="historyRows">
+          <div v-for="(row, index) in historyRows" :key="index">
+            <div>{{ `${row.code} ${row.name}（￥${row.nowPrice.closePrice.toFixed(3)}）` }}</div>
+            <div>{{ row.nextPrice.highSalePrice.toFixed(3) }}(+{{ row.nextPrice.highSaleRate.toFixed(2) }}%)</div>
+            <div>{{ row.nextPrice.firstSalePrice.toFixed(3) }}(+{{ row.nextPrice.firstSaleRate.toFixed(2) }}%)</div>
+            <div>{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate.toFixed(2) }}%)</div>
+            <div>{{ row.nextPrice.lowBuyPrice.toFixed(3) }}(-{{ row.nextPrice.lowBuyRate.toFixed(2) }}%)</div>
+          </div>
+        </div> -->
         <div class="flex-center justify-around text-xl font-bold" v-if="historyRows">
-          <div class="next-price-box" v-for="(row, index) in historyRows" :key="index">
+          <div class="next-price-box relative" v-for="(row, index) in historyRows" :key="index">
+            <div class="absolute top-3 left-3 opacity-50">
+              <buy-logo v-if="row.nowPrice.closePrice <= row.nextPrice.firstBuyPrice" />
+              <sale-logo v-if="row.nowPrice.closePrice >= row.nextPrice.firstSalePrice" />
+            </div>
             <div class="row p-2">
               <span class="flex-1 text-center truncate">{{ `${row.code} ${row.name}` }}</span>
               <el-button class="w-min" type="primary" :icon="CaretRight" circle @click="backtesting(`${row.market}.${row.code}`)"></el-button>

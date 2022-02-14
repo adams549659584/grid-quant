@@ -4,9 +4,11 @@
 
 declare module 'vue' {
   export interface GlobalComponents {
+    BuyLogo: typeof import('./src/components/icons/BuyLogo.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
+    SaleLogo: typeof import('./src/components/icons/SaleLogo.vue')['default']
   }
 }
 
