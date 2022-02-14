@@ -1,0 +1,85 @@
+<script setup lang="ts">
+import { Delete, CaretRight, CircleClose } from '@element-plus/icons-vue';
+import useBacktesting from '../backtesting/hooks/useBacktesting';
+import useStockHistory from '../history/hooks/useStockHistory';
+import BacktestingLog from '../backtesting/BacktestingLog.vue';
+
+const { historyRows, historyFillRowCount,delHistory } = useStockHistory();
+const { runBacktesting } = useBacktesting();
+</script>
+
+<template>
+  <div class="flex justify-around items-center flex-wrap text-xl font-bold" v-if="historyRows">
+    <div class="next-price-box relative" v-for="(row, index) in historyRows" :key="index">
+      <div class="absolute top-3 left-3 opacity-50">
+        <buy-logo v-if="row.nowPrice.closePrice <= row.nextPrice.firstBuyPrice" />
+        <sale-logo v-if="row.nowPrice.closePrice >= row.nextPrice.firstSalePrice" />
+      </div>
+      <div class="row p-2">
+        <span class="flex-1 text-center truncate">{{ `${row.code} ${row.name}` }}</span>
+        <el-button class="w-min" type="primary" :icon="CaretRight" circle @click="runBacktesting(`${row.market}.${row.code}`)"></el-button>
+        <el-button class="w-min" type="danger" :icon="Delete" circle @click="delHistory(row)"></el-button>
+      </div>
+      <div class="row">
+        <div class="column">操作</div>
+        <div class="column close-price-green" :class="{ 'close-price-red': row.nowPrice.closePrice >= (row.nextPrice.firstSalePrice + row.nextPrice.firstBuyPrice) / 2 }">
+          价格({{ row.nowPrice.closePrice.toFixed(3) }})
+        </div>
+      </div>
+      <div class="row bg-red-400">
+        <div class="column">极限获利位</div>
+        <div class="column">{{ row.nextPrice.highSalePrice.toFixed(3) }}(+{{ row.nextPrice.highSaleRate.toFixed(2) }}%)</div>
+      </div>
+      <div class="row bg-red-300">
+        <div class="column">第一压力位</div>
+        <div class="column">{{ row.nextPrice.firstSalePrice.toFixed(3) }}(+{{ row.nextPrice.firstSaleRate.toFixed(2) }}%)</div>
+      </div>
+      <div class="row bg-green-300">
+        <div class="column">第一支撑位</div>
+        <div class="column">{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate.toFixed(2) }}%)</div>
+      </div>
+      <div class="row bg-green-400">
+        <div class="column">极限抄底位</div>
+        <div class="column">{{ row.nextPrice.lowBuyPrice.toFixed(3) }}(-{{ row.nextPrice.lowBuyRate.toFixed(2) }}%)</div>
+      </div>
+      <div class="row">
+        <div class="column">振幅</div>
+        <div class="column">
+          {{ (row.nextPrice.firstSaleRate + row.nextPrice.firstBuyRate).toFixed(2) }}% - {{ (row.nextPrice.highSaleRate + row.nextPrice.lowBuyRate).toFixed(2) }}%
+        </div>
+      </div>
+    </div>
+    <div class="next-price-box invisible" v-for="i in historyFillRowCount" :key="i"></div>
+    <backtesting-log />
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.next-price-box {
+  @apply border outline-2 mt-4 w-[98%]
+   md:w-[49%]
+   lg:w-[32.3%]
+   xl:w-[24%] 
+   2xl:w-[19%];
+
+  .row {
+    @apply flex justify-center items-center flex-wrap border-b;
+
+    &:last-child {
+      @apply border-b-0;
+    }
+  }
+  .column {
+    &:first-child {
+      @apply border-r;
+    }
+    @apply text-center truncate w-1/2 p-2;
+    &.close-price-green {
+      @apply text-green-500;
+    }
+    &.close-price-red {
+      @apply text-red-500;
+    }
+  }
+}
+</style>

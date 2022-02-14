@@ -6,9 +6,9 @@ on:
     branches:
       - master
 
-  push:
-    branches:
-      - master
+  # push:
+  #   branches:
+  #     - master
   
   watch:
     types: [started]

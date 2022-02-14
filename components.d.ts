@@ -4,11 +4,14 @@
 
 declare module 'vue' {
   export interface GlobalComponents {
+    BacktestingLog: typeof import('./src/components/backtesting/BacktestingLog.vue')['default']
     BuyLogo: typeof import('./src/components/icons/BuyLogo.vue')['default']
     ElButton: typeof import('element-plus/es')['ElButton']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
     HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
+    NextPriceBox: typeof import('./src/components/predict/NextPriceBox.vue')['default']
     SaleLogo: typeof import('./src/components/icons/SaleLogo.vue')['default']
+    StockSearch: typeof import('./src/components/search/StockSearch.vue')['default']
   }
 }
 
