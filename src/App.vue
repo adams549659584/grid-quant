@@ -4,6 +4,8 @@ import StockSearch from './components/search/StockSearch.vue';
 import useStockHistory from './components/history/hooks/useStockHistory';
 import usePredict from './components/predict/hooks/usePredict';
 import NextPriceBox from './components/predict/NextPriceBox.vue';
+import GridHeader from './components/header/GridHeader.vue';
+import GridFooter from './components/footer/GridFooter.vue';
 
 const nextPriceTimer = ref(0);
 const { isTradeTime, isShowNextSwitchChange, nextSwitch, calcNext } = usePredict();
@@ -94,18 +96,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div>
-    <header>
-      <h1 class="flex justify-center items-center flex-wrap">
-        <span class="text-3xl font-bold p-4">价格预测</span>
-        <a
-          class="cursor-pointer"
-          href="https://github.com/adams549659584/grid-quant"
-          target="_blank"
-        >
-          <img src="./assets/images/github.png" alt="https://github.com/adams549659584/grid-quant" />
-        </a>
-      </h1>
-    </header>
+    <grid-header />
     <main>
       <header class="flex justify-center items-center flex-wrap space-x-4">
         <el-switch
@@ -117,32 +108,12 @@ onBeforeUnmount(() => {
           @change="nextSwitchChange"
         />
         <stock-search />
-        <!-- <el-button class="btn-backtesting"
-                   size="large"
-                   type="danger"
-        @click="backtesting">回测</el-button>-->
       </header>
       <main>
-        <!-- <div v-if="historyRows" class="flex-center justify-around">
-          <div v-for="(row, index) in historyRows" :key="index" class="border p-3 w-[11rem]">
-            <div class="w-full truncate">{{ `${row.name}(${row.nowPrice.closePrice.toFixed(3)})` }}</div>
-            <div>{{ row.nextPrice.highSalePrice.toFixed(3) }}(+{{ row.nextPrice.highSaleRate.toFixed(2) }}%)</div>
-            <div>{{ row.nextPrice.firstSalePrice.toFixed(3) }}(+{{ row.nextPrice.firstSaleRate.toFixed(2) }}%)</div>
-            <div>{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate.toFixed(2) }}%)</div>
-            <div>{{ row.nextPrice.lowBuyPrice.toFixed(3) }}(-{{ row.nextPrice.lowBuyRate.toFixed(2) }}%)</div>
-          </div>
-        </div>-->
         <next-price-box />
       </main>
     </main>
-    <footer>
-      <div class="p-4 text-gray-400">
-        <p class="flex-center space-x-2">
-          <span>MIT Licensed | Copyright © 2022</span>
-          <a href="https://github.com/adams549659584" target="_blank">adams549659584</a>
-        </p>
-      </div>
-    </footer>
+    <grid-footer />
   </div>
 </template>
 

@@ -11,7 +11,7 @@ const { runBacktesting } = useBacktesting();
 
 <template>
   <div
-    class="flex justify-around items-center flex-wrap text-xl font-bold"
+    class="flex justify-around items-center flex-wrap text-gray-800"
     v-if="historyRows && historyRows.length > 0"
   >
     <div class="next-price-box relative" v-for="(row, index) in historyRows" :key="index">
@@ -33,9 +33,18 @@ const { runBacktesting } = useBacktesting();
       <div class="row">
         <div class="column">操作</div>
         <div
-          class="column close-price-green"
+          class="column close-price-green cursor-pointer"
           :class="{ 'close-price-red': row.nowPrice.closePrice >= (row.nextPrice.firstSalePrice + row.nextPrice.firstBuyPrice) / 2 }"
-        >价格({{ row.nowPrice.closePrice.toFixed(3) }})</div>
+        >
+          <el-popover placement="top-start" trigger="hover">
+            <template #reference>价格({{ row.nowPrice.closePrice.toFixed(3) }})</template>
+            <div>
+              <p class="p-1">高：{{ row.nowPrice.highPrice.toFixed(3) }}</p>
+              <p class="p-1">低：{{ row.nowPrice.lowPrice.toFixed(3) }}</p>
+              <p class="p-1">开：{{ row.nowPrice.openPrice.toFixed(3) }}</p>
+            </div>
+          </el-popover>
+        </div>
       </div>
       <div class="row bg-red-400">
         <div class="column">极限获利位</div>

@@ -99,7 +99,7 @@ export interface IKLineRow {
   openPrice: number;
 
   /**
-   * 开盘价(元)
+   * 收盘价(元)
    */
   closePrice: number;
 
