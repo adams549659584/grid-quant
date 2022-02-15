@@ -1,5 +1,5 @@
 import { IHistoryRow } from '@/api/stock/model/IHistoryRow';
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref } from 'vue';
 
 function useStockHistory() {
   const historySearchResultKey = 'history_search_results';
@@ -54,10 +54,6 @@ function useStockHistory() {
     historyRows.value = historys;
     localStorage.setItem(historySearchResultKey, JSON.stringify(historys));
   };
-
-  onMounted(() => {
-    historyRows.value = getHistory();
-  });
 
   return {
     historyRows,

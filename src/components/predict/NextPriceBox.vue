@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { Delete, CaretRight, CircleClose } from '@element-plus/icons-vue';
+import { Delete, CaretRight } from '@element-plus/icons-vue';
 import useBacktesting from '../backtesting/hooks/useBacktesting';
 import useStockHistory from '../history/hooks/useStockHistory';
 import BacktestingLog from '../backtesting/BacktestingLog.vue';
+import { onMounted } from 'vue';
 
-const { historyRows, historyFillRowCount,delHistory } = useStockHistory();
+const { historyRows, historyFillRowCount, delHistory } = useStockHistory();
 const { runBacktesting } = useBacktesting();
+
+onMounted(() => {
+  console.log(`next price box mounted :`, historyRows.value);
+});
 </script>
 
 <template>

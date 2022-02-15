@@ -1,21 +1,20 @@
 <script setup lang="ts">
-import { ref, onBeforeUnmount } from 'vue';
+import { ref, onBeforeUnmount, onMounted } from 'vue';
 import StockSearch from './components/search/StockSearch.vue';
 import useStockHistory from './components/history/hooks/useStockHistory';
 import usePredict from './components/predict/hooks/usePredict';
 import NextPriceBox from './components/predict/NextPriceBox.vue';
 
-const nextPriceTimer = ref<NodeJS.Timeout>();
+const nextPriceTimer = ref(0);
 const { isTradeTime, isShowNextSwitchChange, nextSwitch, calcNext } = usePredict();
+const { historyRows, getHistory } = useStockHistory();
 
 const nextSwitchChange = async () => {
   initNextPriceList();
 };
 
 const initNextPriceList = async () => {
-  const { historyRows, getHistory } = useStockHistory();
-  historyRows.value = getHistory();
-  if (historyRows.value.length > 0) {
+  if (historyRows.value && historyRows.value.length > 0) {
     historyRows.value.forEach((row) => calcNext(`${row.market}.${row.code}`));
   } else {
     [
@@ -71,16 +70,20 @@ const initNextPriceList = async () => {
     ].forEach((secid) => calcNext(secid));
   }
   if (isTradeTime) {
-    nextPriceTimer.value = setTimeout(() => {
+    nextPriceTimer.value = window.setTimeout(() => {
       initNextPriceList();
     }, 1000 * 30);
   }
 };
 
 const init = () => {
+  historyRows.value = getHistory();
   initNextPriceList();
 };
-init();
+
+onMounted(() => {
+  init();
+});
 
 onBeforeUnmount(() => {
   if (nextPriceTimer.value) {
