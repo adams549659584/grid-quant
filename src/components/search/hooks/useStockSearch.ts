@@ -3,30 +3,30 @@ import { search } from '@/api/stock/stock-api';
 import usePredict from '@/components/predict/hooks/usePredict';
 import { ref } from 'vue';
 
+const isShowSearchResult = ref(false);
+/**
+ * 搜索关键字
+ */
+const searchKeyword = ref('');
+
+/**
+ * 搜索结果
+ */
+const searchResultRows = ref<ISearchResultRow[]>();
+
+/**
+ * 搜索索引
+ */
+const searchSelectedIndex = ref(0);
+
+/**
+ * 是否加载中
+ */
+const loading = ref(false);
+
+const secid = ref('');
+
 export default function useStockSearch() {
-  const isShowSearchResult = ref(false);
-  /**
-   * 搜索关键字
-   */
-  const searchKeyword = ref('');
-
-  /**
-   * 搜索结果
-   */
-  const searchResultRows = ref<ISearchResultRow[]>();
-
-  /**
-   * 搜索索引
-   */
-  const searchSelectedIndex = ref(0);
-
-  /**
-   * 是否加载中
-   */
-  const loading = ref(false);
-
-  const secid = ref('');
-
   /**
    * 是否显示搜索结果
    */

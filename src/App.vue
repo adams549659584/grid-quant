@@ -7,7 +7,7 @@ import NextPriceBox from './components/predict/NextPriceBox.vue';
 
 const nextPriceTimer = ref(0);
 const { isTradeTime, isShowNextSwitchChange, nextSwitch, calcNext } = usePredict();
-const { historyRows, getHistory } = useStockHistory();
+let { historyRows, getHistory } = useStockHistory();
 
 const nextSwitchChange = async () => {
   initNextPriceList();
@@ -97,14 +97,25 @@ onBeforeUnmount(() => {
     <header>
       <h1 class="flex justify-center items-center flex-wrap">
         <span class="text-3xl font-bold p-4">价格预测</span>
-        <a class="cursor-pointer" href="https://github.com/adams549659584/grid-quant" target="_blank">
+        <a
+          class="cursor-pointer"
+          href="https://github.com/adams549659584/grid-quant"
+          target="_blank"
+        >
           <img src="./assets/images/github.png" alt="https://github.com/adams549659584/grid-quant" />
         </a>
       </h1>
     </header>
     <main>
       <header class="flex justify-center items-center flex-wrap space-x-4">
-        <el-switch v-if="isShowNextSwitchChange" v-model="nextSwitch" inline-prompt active-text="预" inactive-text="回" @change="nextSwitchChange" />
+        <el-switch
+          v-if="isShowNextSwitchChange"
+          v-model="nextSwitch"
+          inline-prompt
+          active-text="预"
+          inactive-text="回"
+          @change="nextSwitchChange"
+        />
         <stock-search />
         <!-- <el-button class="btn-backtesting"
                    size="large"
@@ -120,7 +131,7 @@ onBeforeUnmount(() => {
             <div>{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate.toFixed(2) }}%)</div>
             <div>{{ row.nextPrice.lowBuyPrice.toFixed(3) }}(-{{ row.nextPrice.lowBuyRate.toFixed(2) }}%)</div>
           </div>
-        </div> -->
+        </div>-->
         <next-price-box />
       </main>
     </main>

@@ -1,28 +1,29 @@
 import { IHistoryRow } from '@/api/stock/model/IHistoryRow';
 import { computed, ref } from 'vue';
 
-function useStockHistory() {
-  const historySearchResultKey = 'history_search_results';
-  const historyRows = ref<IHistoryRow[]>();
-  // 填充保持观感
-  const historyFillRowCount = computed(() => {
-    if (!historyRows.value || historyRows.value.length === 0) {
-      return 0;
-    }
-    const nowCount = historyRows.value.length;
-    const screenWidth = window.screen.width;
-    if (screenWidth >= 1536) {
-      return 5 - (nowCount % 5);
-    } else if (screenWidth >= 1280) {
-      return 4 - (nowCount % 4);
-    } else if (screenWidth >= 1024) {
-      return 3 - (nowCount % 3);
-    } else if (screenWidth >= 768) {
-      return 2 - (nowCount % 2);
-    }
-    return 0;
-  });
+const historySearchResultKey = 'history_search_results';
+let historyRows = ref<IHistoryRow[]>();
 
+// 填充保持观感
+const historyFillRowCount = computed(() => {
+  if (!historyRows.value || historyRows.value.length === 0) {
+    return 0;
+  }
+  const nowCount = historyRows.value.length;
+  const screenWidth = window.screen.width;
+  if (screenWidth >= 1536) {
+    return 5 - (nowCount % 5);
+  } else if (screenWidth >= 1280) {
+    return 4 - (nowCount % 4);
+  } else if (screenWidth >= 1024) {
+    return 3 - (nowCount % 3);
+  } else if (screenWidth >= 768) {
+    return 2 - (nowCount % 2);
+  }
+  return 0;
+});
+
+export default function useStockHistory() {
   const getHistory = () => {
     const historyStr = localStorage.getItem(historySearchResultKey);
     if (!historyStr) {
@@ -63,5 +64,3 @@ function useStockHistory() {
     delHistory
   };
 }
-
-export default useStockHistory;

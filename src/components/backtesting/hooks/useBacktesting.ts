@@ -5,12 +5,12 @@ import { calcNextPrice, mathRound } from '@/helpers/StockHelper';
 import { ElLoading, ElMessage } from 'element-plus';
 import { ref } from 'vue';
 
-function useBacktesting() {
-  const isShowBacktestingLog = ref(false);
-  const backtestingLogs = ref<string[]>([]);
-  const holdCount = ref(0);
-  const totalMoney = ref(100000);
+const isShowBacktestingLog = ref(false);
+const backtestingLogs = ref<string[]>([]);
+const holdCount = ref(0);
+const totalMoney = ref(100000);
 
+function useBacktesting() {
   const runBacktesting = async (secid: string) => {
     const loadingInstance = ElLoading.service({ lock: true });
     const klineM5 = await getKLineM5(secid);

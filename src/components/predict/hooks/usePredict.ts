@@ -5,13 +5,13 @@ import { calcNextPrice } from '@/helpers/StockHelper';
 import { ElMessage } from 'element-plus';
 import { ref } from 'vue';
 
+const dateNowHM = Number(formatNow('Hmm'));
+const isTradeTime = dateNowHM >= 930 && dateNowHM <= 1500;
+const isShowNextSwitchChange = !isTradeTime;
+
+const nextSwitch = ref(true);
+
 export default function usePredict() {
-  const dateNowHM = Number(formatNow('Hmm'));
-  const isTradeTime = dateNowHM >= 930 && dateNowHM <= 1500;
-  const isShowNextSwitchChange = !isTradeTime;
-
-  const nextSwitch = ref(true);
-
   const { updateHistory } = useStockHistory();
   // 下次价格预测
   const calcNext = async (secid: string, isMoveToFirst = false) => {
