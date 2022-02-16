@@ -11,12 +11,13 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "allowSyntheticDefaultImports": false,
+    "isolatedModules": true,
     "lib": [
       "esnext",
       "dom"
     ],
     "types": [
+      "vite/client",
       "element-plus/global"
     ],
     "paths": {
