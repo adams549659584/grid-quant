@@ -24,8 +24,7 @@ export default function useStockSearch() {
   /**
    * 查询
    */
-  const query = async (queryStr: string) => {
-    console.log(`queryStr : `, queryStr);
+  const query = async (queryStr: string, cb: (results: Array<ISearchResultRow & { Text: string }>) => void) => {
     if (queryStr) {
       loading.value = true;
       const searchResults = await search(queryStr);
@@ -34,13 +33,23 @@ export default function useStockSearch() {
     } else {
       searchResultRows.value = [];
     }
+
+    cb(
+      searchResultRows.value.map((x) => {
+        return {
+          ...x,
+          Text: `${x.Code} ${x.Name} ${x.SecurityTypeName}`
+        };
+      })
+    );
   };
 
-  const selectChange = async (val: string) => {
+  const selectChange = async (val: ISearchResultRow) => {
     if (!val) {
       return;
     }
-    secid.value = val.split('_')[0];
+    searchKeyword.value = '';
+    secid.value = `${val.MktNum}.${val.Code}`;
     const { calcNext } = usePredict();
     return calcNext(secid.value, true);
   };

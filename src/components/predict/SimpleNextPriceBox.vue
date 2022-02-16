@@ -7,7 +7,7 @@ const { historyRows, historyFillRowCount } = useStockHistory();
 
 <template>
   <div class="flex justify-around items-center flex-wrap text-gray-800" v-if="historyRows && historyRows.length > 0">
-    <div class="next-price-box relative" v-for="(row, index) in historyRows" :key="index">
+    <div class="next-price-box relative rounded-md shadow-md shadow-gray-300" v-for="(row, index) in historyRows" :key="index">
       <div class="absolute top-3 left-3 opacity-50">
         <buy-logo v-if="row.nowPrice.closePrice <= row.nextPrice.firstBuyPrice" />
         <sale-logo v-if="row.nowPrice.closePrice >= row.nextPrice.firstSalePrice" />
