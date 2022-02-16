@@ -1,11 +1,8 @@
 <script setup lang="ts">
-import { Delete, CaretRight } from '@element-plus/icons-vue';
-import useBacktesting from '../backtesting/hooks/useBacktesting';
 import useStockHistory from '../history/hooks/useStockHistory';
 import BacktestingLog from '../backtesting/BacktestingLog.vue';
 
-const { historyRows, historyFillRowCount, delHistory } = useStockHistory();
-const { runBacktesting } = useBacktesting();
+const { historyRows, historyFillRowCount } = useStockHistory();
 </script>
 
 <template>

@@ -1,4 +1,5 @@
 import { IHistoryRow } from '@/api/stock/model/IHistoryRow';
+import usePredict from '@/components/predict/hooks/usePredict';
 import { computed, ref } from 'vue';
 
 const historySearchResultKey = 'history_search_results';
@@ -11,14 +12,28 @@ const historyFillRowCount = computed(() => {
   }
   const nowCount = historyRows.value.length;
   const screenWidth = window.screen.width;
-  if (screenWidth >= 1536) {
-    return 5 - (nowCount % 5);
-  } else if (screenWidth >= 1280) {
-    return 4 - (nowCount % 4);
-  } else if (screenWidth >= 1024) {
-    return 3 - (nowCount % 3);
-  } else if (screenWidth >= 768) {
+  const { simpleSwitch } = usePredict();
+  if (simpleSwitch) {
+    if (screenWidth >= 1536) {
+      return 8 - (nowCount % 8);
+    } else if (screenWidth >= 1280) {
+      return 7 - (nowCount % 7);
+    } else if (screenWidth >= 1024) {
+      return 6 - (nowCount % 6);
+    } else if (screenWidth >= 768) {
+      return 4 - (nowCount % 4);
+    }
     return 2 - (nowCount % 2);
+  } else {
+    if (screenWidth >= 1536) {
+      return 5 - (nowCount % 5);
+    } else if (screenWidth >= 1280) {
+      return 4 - (nowCount % 4);
+    } else if (screenWidth >= 1024) {
+      return 3 - (nowCount % 3);
+    } else if (screenWidth >= 768) {
+      return 2 - (nowCount % 2);
+    }
   }
   return 0;
 });
