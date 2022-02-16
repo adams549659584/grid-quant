@@ -8,7 +8,6 @@ declare module 'vue' {
     BuyLogo: typeof import('./src/components/icons/BuyLogo.vue')['default']
     ElAutocomplete: typeof import('element-plus/es')['ElAutocomplete']
     ElButton: typeof import('element-plus/es')['ElButton']
-    ElInput: typeof import('element-plus/es')['ElInput']
     ElPopover: typeof import('element-plus/es')['ElPopover']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
     GridFooter: typeof import('./src/components/footer/GridFooter.vue')['default']
@@ -16,6 +15,7 @@ declare module 'vue' {
     NextPriceBox: typeof import('./src/components/predict/NextPriceBox.vue')['default']
     SaleLogo: typeof import('./src/components/icons/SaleLogo.vue')['default']
     SimpleNextPriceBox: typeof import('./src/components/predict/SimpleNextPriceBox.vue')['default']
+    StockKLine: typeof import('./src/components/kline/StockKLine.vue')['default']
     StockSearch: typeof import('./src/components/search/StockSearch.vue')['default']
   }
 }
