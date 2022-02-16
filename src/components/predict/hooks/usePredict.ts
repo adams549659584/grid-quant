@@ -9,7 +9,10 @@ const dateNowHM = Number(formatNow('Hmm'));
 const isTradeTime = dateNowHM >= 930 && dateNowHM <= 1500;
 const isShowNextSwitchChange = !isTradeTime;
 
+// 预测/回看当天
 const nextSwitch = ref(true);
+// 详细/简版
+const simpleSwitch = ref(false);
 
 export default function usePredict() {
   const { updateHistory } = useStockHistory();
@@ -41,6 +44,7 @@ export default function usePredict() {
     isTradeTime,
     isShowNextSwitchChange,
     nextSwitch,
+    simpleSwitch,
     calcNext
   };
 }

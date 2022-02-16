@@ -11,9 +11,9 @@ declare module 'vue' {
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
     GridFooter: typeof import('./src/components/footer/GridFooter.vue')['default']
     GridHeader: typeof import('./src/components/header/GridHeader.vue')['default']
-    HelloWorld: typeof import('./src/components/HelloWorld.vue')['default']
     NextPriceBox: typeof import('./src/components/predict/NextPriceBox.vue')['default']
     SaleLogo: typeof import('./src/components/icons/SaleLogo.vue')['default']
+    SimpleNextPriceBox: typeof import('./src/components/predict/SimpleNextPriceBox.vue')['default']
     StockSearch: typeof import('./src/components/search/StockSearch.vue')['default']
   }
 }
