@@ -12,7 +12,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "isolatedModules": true,
-    "skipDefaultLibCheck": true,
+    "skipDefaultLibCheck": false,
     "lib": [
       "esnext",
       "dom"
