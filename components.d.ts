@@ -18,6 +18,7 @@ declare module 'vue' {
     SimpleNextPriceBox: typeof import('./src/components/predict/SimpleNextPriceBox.vue')['default']
     StockKLine: typeof import('./src/components/kline/StockKLine.vue')['default']
     StockSearch: typeof import('./src/components/search/StockSearch.vue')['default']
+    SvgIcon: typeof import('./src/components/icons/SvgIcon.vue')['default']
   }
 }
 

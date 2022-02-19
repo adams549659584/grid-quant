@@ -103,7 +103,14 @@ onBeforeUnmount(() => {
     <grid-header />
     <main>
       <header class="flex justify-center items-center flex-wrap space-x-4">
-        <el-switch v-if="isShowNextSwitchChange" v-model="nextSwitch" inline-prompt active-text="预" inactive-text="回" @change="nextSwitchChange" />
+        <el-switch
+          v-if="isShowNextSwitchChange"
+          v-model="nextSwitch"
+          inline-prompt
+          active-text="预"
+          inactive-text="回"
+          @change="nextSwitchChange"
+        />
         <stock-search />
         <el-switch v-model="simpleSwitch" inline-prompt active-text="简" inactive-text="详" />
       </header>

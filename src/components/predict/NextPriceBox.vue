@@ -1,24 +1,50 @@
 <script setup lang="ts">
-import { Delete, CaretRight } from '@element-plus/icons-vue';
 import useBacktesting from '../backtesting/hooks/useBacktesting';
 import useStockHistory from '../history/hooks/useStockHistory';
 import BacktestingLog from '../backtesting/BacktestingLog.vue';
+import SvgIcon from '../icons/SvgIcon.vue';
 
 const { historyRows, historyFillRowCount, delHistory } = useStockHistory();
 const { runBacktesting } = useBacktesting();
 </script>
 
 <template>
-  <div class="flex justify-around items-center flex-wrap text-gray-800" v-if="historyRows && historyRows.length > 0">
-    <div class="next-price-box relative rounded-md shadow-md shadow-gray-300" v-for="(row, index) in historyRows" :key="index">
-      <div class="absolute top-3 left-3 opacity-50">
-        <buy-logo v-if="row.nowPrice.closePrice <= row.nextPrice.firstBuyPrice" />
-        <sale-logo v-if="row.nowPrice.closePrice >= row.nextPrice.firstSalePrice" />
+  <div
+    class="flex justify-around items-center flex-wrap text-gray-800"
+    v-if="historyRows && historyRows.length > 0"
+  >
+    <div
+      class="next-price-box relative rounded-md shadow-md shadow-gray-300"
+      v-for="(row, index) in historyRows"
+      :key="index"
+    >
+      <div class="absolute top-3 left-3 opacity-50 w-[4rem] h-[4rem]">
+        <svg-icon
+          v-if="row.nowPrice.closePrice <= row.nextPrice.firstBuyPrice"
+          name="buy"
+          color="#d81e06"
+        />
+        <svg-icon
+          v-if="row.nowPrice.closePrice >= row.nextPrice.firstSalePrice"
+          name="sale"
+          color="#1afa29"
+        />
       </div>
-      <div class="row p-2">
+      <div class="row p-2 space-x-1">
         <span class="flex-1 text-center truncate">{{ `${row.code} ${row.name}` }}</span>
-        <el-button class="w-min" type="primary" :icon="CaretRight" circle @click="runBacktesting(`${row.market}.${row.code}`)"></el-button>
-        <el-button class="w-min" type="danger" :icon="Delete" circle @click="delHistory(row)"></el-button>
+        <!-- <SvgIcon class="w-[2rem] h-[2rem] cursor-pointer" name="kline" /> -->
+        <SvgIcon
+          class="w-[2rem] h-[2rem] cursor-pointer"
+          name="backtesting"
+          color="#1296db"
+          @click="runBacktesting(`${row.market}.${row.code}`)"
+        />
+        <SvgIcon
+          class="w-[2rem] h-[2rem] cursor-pointer"
+          name="delete"
+          color="#fff"
+          @click="delHistory(row)"
+        />
       </div>
       <div class="row">
         <div class="column">操作</div>
@@ -38,25 +64,33 @@ const { runBacktesting } = useBacktesting();
       </div>
       <div class="row bg-red-400">
         <div class="column">极限获利位</div>
-        <div class="column">{{ row.nextPrice.highSalePrice.toFixed(3) }}(+{{ row.nextPrice.highSaleRate.toFixed(2) }}%)</div>
+        <div
+          class="column"
+        >{{ row.nextPrice.highSalePrice.toFixed(3) }}(+{{ row.nextPrice.highSaleRate.toFixed(2) }}%)</div>
       </div>
       <div class="row bg-red-300">
         <div class="column">第一压力位</div>
-        <div class="column">{{ row.nextPrice.firstSalePrice.toFixed(3) }}(+{{ row.nextPrice.firstSaleRate.toFixed(2) }}%)</div>
+        <div
+          class="column"
+        >{{ row.nextPrice.firstSalePrice.toFixed(3) }}(+{{ row.nextPrice.firstSaleRate.toFixed(2) }}%)</div>
       </div>
       <div class="row bg-green-300">
         <div class="column">第一支撑位</div>
-        <div class="column">{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate.toFixed(2) }}%)</div>
+        <div
+          class="column"
+        >{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate.toFixed(2) }}%)</div>
       </div>
       <div class="row bg-green-400">
         <div class="column">极限抄底位</div>
-        <div class="column">{{ row.nextPrice.lowBuyPrice.toFixed(3) }}(-{{ row.nextPrice.lowBuyRate.toFixed(2) }}%)</div>
+        <div
+          class="column"
+        >{{ row.nextPrice.lowBuyPrice.toFixed(3) }}(-{{ row.nextPrice.lowBuyRate.toFixed(2) }}%)</div>
       </div>
       <div class="row">
         <div class="column">振幅</div>
-        <div class="column">
-          {{ (row.nextPrice.firstSaleRate + row.nextPrice.firstBuyRate).toFixed(2) }}% - {{ (row.nextPrice.highSaleRate + row.nextPrice.lowBuyRate).toFixed(2) }}%
-        </div>
+        <div
+          class="column"
+        >{{ (row.nextPrice.firstSaleRate + row.nextPrice.firstBuyRate).toFixed(2) }}% - {{ (row.nextPrice.highSaleRate + row.nextPrice.lowBuyRate).toFixed(2) }}%</div>
       </div>
     </div>
     <div class="next-price-box invisible" v-for="i in historyFillRowCount" :key="i"></div>

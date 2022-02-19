@@ -30,7 +30,7 @@ export default ({ command }: ConfigEnv): UserConfig => {
       }
     },
     server: {
-      host: '192.168.8.36',
+      // host: '192.168.8.36',
       port: 4000, // 设置服务启动端口号
       open: true, // 设置服务启动时是否自动打开浏览器
       cors: true // 允许跨域
