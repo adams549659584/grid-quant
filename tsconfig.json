@@ -12,14 +12,15 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "isolatedModules": true,
-    "skipDefaultLibCheck": false,
+    "skipDefaultLibCheck": true,
     "lib": [
       "esnext",
       "dom"
     ],
     "types": [
       "vite/client",
-      "element-plus/global"
+      "element-plus/global",
+      "vite-plugin-svg-icons/client"
     ],
     "paths": {
       "@/*": [
@@ -31,6 +32,8 @@
     "src/**/*.ts",
     "src/**/*.d.ts",
     "src/**/*.tsx",
-    "src/**/*.vue"
+    "src/**/*.vue",
+    "build/**/*.ts",
+    "build/**/*.d.ts",
   ]
 }

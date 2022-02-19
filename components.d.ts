@@ -11,6 +11,7 @@ declare module 'vue' {
     ElPopover: typeof import('element-plus/es')['ElPopover']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
     GridFooter: typeof import('./src/components/footer/GridFooter.vue')['default']
+    GridFundsCalc: typeof import('./src/components/grid/GridFundsCalc.vue')['default']
     GridHeader: typeof import('./src/components/header/GridHeader.vue')['default']
     NextPriceBox: typeof import('./src/components/predict/NextPriceBox.vue')['default']
     SaleLogo: typeof import('./src/components/icons/SaleLogo.vue')['default']

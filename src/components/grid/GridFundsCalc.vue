@@ -1,36 +1,18 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import * as echarts from 'echarts/core';
-import {
-  TitleComponent,
-  TitleComponentOption,
-  ToolboxComponent,
-  ToolboxComponentOption,
-  TooltipComponent,
-  TooltipComponentOption
-} from 'echarts/components';
+import { TitleComponent, TitleComponentOption, ToolboxComponent, ToolboxComponentOption, TooltipComponent, TooltipComponentOption } from 'echarts/components';
 import { FunnelChart, FunnelSeriesOption } from 'echarts/charts';
 import { CanvasRenderer } from 'echarts/renderers';
-echarts.use([
-  TitleComponent,
-  ToolboxComponent,
-  TooltipComponent,
-  FunnelChart,
-  CanvasRenderer
-]);
-type EChartsOption = echarts.ComposeOption<
-  | TitleComponentOption
-  | ToolboxComponentOption
-  | TooltipComponentOption
-  | FunnelSeriesOption
->;
+echarts.use([TitleComponent, ToolboxComponent, TooltipComponent, FunnelChart, CanvasRenderer]);
+type EChartsOption = echarts.ComposeOption<TitleComponentOption | ToolboxComponentOption | TooltipComponentOption | FunnelSeriesOption>;
 
 const chartsRef = ref<HTMLElement>();
 
 onMounted(() => {
   if (chartsRef.value) {
-    var myChart = echarts.init(chartsRef.value);
-    var option: EChartsOption;
+    const myChart = echarts.init(chartsRef.value);
+    let option: EChartsOption;
 
     option = {
       title: {
@@ -52,6 +34,7 @@ onMounted(() => {
         {
           name: '倒金字塔出货',
           type: 'funnel',
+          z: 3,
           width: '80%',
           height: '42%',
           left: 'center',
@@ -75,10 +58,10 @@ onMounted(() => {
         {
           name: '对敲收益',
           type: 'funnel',
-          width: '8%',
-          height: '22%',
+          width: '16%',
+          height: '60%',
           left: 'center',
-          top: '42%',
+          top: '33%',
           label: {
             position: 'left'
           },
@@ -95,6 +78,7 @@ onMounted(() => {
         {
           name: '金字塔建仓',
           type: 'funnel',
+          z: 3,
           width: '80%',
           height: '42%',
           left: 'center',
@@ -125,14 +109,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    class="absolute w-full h-full px-1 md:px-6 py-40 z-10 box-border top-0 left-0 bg-black/70 cursor-not-allowed overflow-hidden"
-    @touchmove.prevent
-    @mousewheel.prevent
-  >
-    <div
-      class="w-full md:w-[50rem] bg-white rounded-md mx-auto text-center leading-none z-20 relative"
-    >
+  <div class="absolute w-full h-full px-1 md:px-6 py-40 z-10 box-border top-0 left-0 bg-black/70 cursor-not-allowed overflow-hidden" @touchmove.prevent @mousewheel.prevent>
+    <div class="w-full md:w-[50rem] bg-white rounded-md mx-auto text-center leading-none z-20 relative">
       <h5 class="p-2">测试测试(1.000001)</h5>
       <div class="w-full h-96" ref="chartsRef"></div>
     </div>
