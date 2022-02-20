@@ -3,9 +3,12 @@ import useBacktesting from '../backtesting/hooks/useBacktesting';
 import useStockHistory from '../history/hooks/useStockHistory';
 import BacktestingLog from '../backtesting/BacktestingLog.vue';
 import SvgIcon from '../icons/SvgIcon.vue';
+import GridFundsCalc from '../grid/GridFundsCalc.vue';
+import useGrid from '../grid/hooks/useGrid';
 
 const { historyRows, historyFillRowCount, delHistory } = useStockHistory();
 const { runBacktesting } = useBacktesting();
+const { isShowPyramidCalc, showPyramidCalc } = useGrid();
 </script>
 
 <template>
@@ -34,17 +37,17 @@ const { runBacktesting } = useBacktesting();
         <span class="flex-1 text-center truncate">{{ `${row.code} ${row.name}` }}</span>
         <!-- <SvgIcon class="w-[2rem] h-[2rem] cursor-pointer" name="kline" /> -->
         <SvgIcon
+          class="w-[2rem] h-[2rem] cursor-pointer hidden md:block"
+          name="pyramid"
+          @click="showPyramidCalc({ market: row.market, code: row.code, name: row.name, firstBuyPrice: row.nowPrice.closePrice })"
+        />
+        <!-- <SvgIcon
           class="w-[2rem] h-[2rem] cursor-pointer"
           name="backtesting"
           color="#1296db"
           @click="runBacktesting(`${row.market}.${row.code}`)"
-        />
-        <SvgIcon
-          class="w-[2rem] h-[2rem] cursor-pointer"
-          name="delete"
-          color="#fff"
-          @click="delHistory(row)"
-        />
+        />-->
+        <SvgIcon class="w-[2rem] h-[2rem] cursor-pointer" name="delete" @click="delHistory(row)" />
       </div>
       <div class="row">
         <div class="column">操作</div>
@@ -94,7 +97,8 @@ const { runBacktesting } = useBacktesting();
       </div>
     </div>
     <div class="next-price-box invisible" v-for="i in historyFillRowCount" :key="i"></div>
-    <backtesting-log />
+    <BacktestingLog />
+    <GridFundsCalc v-if="isShowPyramidCalc" />
   </div>
 </template>
 

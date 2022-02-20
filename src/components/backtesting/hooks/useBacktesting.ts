@@ -30,13 +30,13 @@ function useBacktesting() {
       let klineNextPrice = calcNextPrice(lastClosePrice, lastHighPrice, lastLowPrice);
       let optRate = mathRound((klineNextPrice.firstSalePrice - klineNextPrice.firstBuyPrice) / ((klineNextPrice.firstSalePrice + klineNextPrice.firstBuyPrice) / 2), 2);
       // 网格幅度
-      const { minGridOptCount, minGridRate, minHoldCount, gridCount, setGridCount } = useGrid();
+      const { minGridOptCount, minGridRate, minHoldCount, gridCount } = useGrid();
       let gridRate = mathRound(optRate / minGridOptCount.value);
-      if (gridRate < minGridRate) {
-        gridRate = minGridRate;
+      if (gridRate < minGridRate.value) {
+        gridRate = minGridRate.value;
       }
       // 每次委托数,每次2000元
-      setGridCount(Math.round(2000 / lastClosePrice / 100) * 100);
+      gridCount.value = Math.round(2000 / lastClosePrice / 100) * 100;
       // 至少100
       if (gridCount.value === 0) {
         gridCount.value = 100;
@@ -68,8 +68,8 @@ function useBacktesting() {
           lastLowPrice = kline.lowPrice;
           optRate = mathRound((klineNextPrice.firstSalePrice - klineNextPrice.firstBuyPrice) / ((klineNextPrice.firstSalePrice + klineNextPrice.firstBuyPrice) / 2), 2);
           gridRate = mathRound(optRate / minGridOptCount.value);
-          if (gridRate < minGridRate) {
-            gridRate = minGridRate;
+          if (gridRate < minGridRate.value) {
+            gridRate = minGridRate.value;
           }
           // backtestingLogs.value.push(`网格幅度 : ${(gridRate * 100).toFixed(2)}%`);
         }
