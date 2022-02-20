@@ -232,7 +232,7 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
   if (pyramidEchart.value) {
     pyramidEchart.value.setOption(pyramidOption);
   }
-  console.log(`echart option : `, JSON.stringify(pyramidOption));
+  // console.log(`echart option : `, JSON.stringify(pyramidOption));
   isShowPyramidCalc.value = true;
 };
 const hidePyramidCalc = () => (isShowPyramidCalc.value = false);
