@@ -55,16 +55,38 @@ onMounted(() => {
   <el-dialog v-model="isShowPyramidConfig" title="金字塔配置" width="19rem">
     <el-form label-width="6rem" label-position="right">
       <el-form-item label="金字塔层数">
-        <el-input-number v-model="pyramidConfig.layerCount" :min="2" :max="30" :step="1" />
+        <el-input-number
+          v-model="pyramidConfig.layerCount"
+          :precision="0"
+          :min="2"
+          :max="Math.round(1 / pyramidConfig.rate)"
+          :step="1"
+        />
       </el-form-item>
       <el-form-item label="金字塔幅度">
-        <el-input-number v-model="pyramidConfig.rate" :min="0.01" :max="0.999" :step="0.01" />
+        <el-input-number
+          v-model="pyramidConfig.rate"
+          :precision="2"
+          :min="0.01"
+          :max="Math.round(1 / pyramidConfig.layerCount * 100) / 100"
+          :step="0.01"
+        />
       </el-form-item>
       <el-form-item label="单笔份额">
-        <el-input-number v-model="pyramidConfig.initTradeCount" :min="100" :step="100" />
+        <el-input-number
+          v-model="pyramidConfig.initTradeCount"
+          :precision="0"
+          :min="100"
+          :step="100"
+        />
       </el-form-item>
       <el-form-item label="建仓价格">
-        <el-input-number v-model="pyramidConfig.firstBuyPrice" :min="0.001" :step="0.001" />
+        <el-input-number
+          v-model="pyramidConfig.firstBuyPrice"
+          :precision="3"
+          :min="0.001"
+          :step="0.001"
+        />
       </el-form-item>
       <el-form-item label="建仓金额">
         <el-input
@@ -74,7 +96,12 @@ onMounted(() => {
         />
       </el-form-item>
       <el-form-item label="出货价格">
-        <el-input-number v-model="pyramidConfig.firstSalePrice" :min="0.001" :step="0.001" />
+        <el-input-number
+          v-model="pyramidConfig.firstSalePrice"
+          :precision="3"
+          :min="0.001"
+          :step="0.001"
+        />
       </el-form-item>
       <el-form-item label="出货金额">
         <el-input
