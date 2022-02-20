@@ -29,7 +29,7 @@ onMounted(() => {
 
 <template>
   <div
-    class="fixed top-0 left-0 bg-black/70 w-full h-full flex justify-center items-center px-1 md:px-6 z-10 box-border cursor-not-allowed overflow-hidden"
+    class="fixed -top-[999rem] -left-[999rem] md:top-0 md:left-0 bg-black/70 w-full h-full flex justify-center items-center px-1 md:px-6 z-10 box-border cursor-not-allowed overflow-hidden"
     @touchmove.prevent
     @mousewheel.prevent
   >
