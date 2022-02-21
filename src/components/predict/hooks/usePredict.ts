@@ -1,7 +1,7 @@
 import { getKLineD1 } from '@/api/stock/stock-api';
 import useStockHistory from '@/components/history/hooks/useStockHistory';
 import { formatNow } from '@/helpers/DateHelper';
-import { calcNextPrice } from '@/helpers/StockHelper';
+import { calcNextPrice, mathRound } from '@/helpers/StockHelper';
 import { ElMessage } from 'element-plus';
 import { ref } from 'vue';
 
@@ -11,8 +11,29 @@ const isShowNextSwitchChange = !isTradeTime;
 
 // 预测/回看当天
 const nextSwitch = ref(true);
-// 卡片还是表格显示
-const tableSwitch = ref(false);
+// 大卡片 小卡片 表格
+const nextPriceStyleList = ['Card', 'MiniCard', 'Table'] as const;
+const nextPriceStyle = ref<typeof nextPriceStyleList[number]>(nextPriceStyleList[0]);
+
+/**
+ * 计算涨跌幅 0.01
+ * @param prevClosePrice 上一次收盘价
+ * @param nowPrice 当前价格
+ * @returns
+ */
+const calcRate = (prevClosePrice: number, nowPrice: number) => {
+  return mathRound(nowPrice / prevClosePrice - 1, 4);
+};
+
+/**
+ * 计算涨跌幅 1%
+ * @param prevClosePrice 上一次收盘价
+ * @param nowPrice 当前价格
+ * @returns
+ */
+const calcPercentRate = (prevClosePrice: number, nowPrice: number) => {
+  return (calcRate(prevClosePrice, nowPrice) * 100).toFixed(2) + '%';
+};
 
 export default function usePredict() {
   const { updateHistory } = useStockHistory();
@@ -30,7 +51,7 @@ export default function usePredict() {
           market: klineD1.data.market,
           code: klineD1.data.code,
           name: klineD1.data.name,
-          prevPrice: klineDatas[0],
+          prevPrice: klineData,
           nowPrice: klineDatas[1],
           nextPrice
         },
@@ -40,12 +61,14 @@ export default function usePredict() {
       ElMessage.error('获取K线数据异常');
     }
   };
-
   return {
     isTradeTime,
     isShowNextSwitchChange,
     nextSwitch,
-    tableSwitch,
-    calcNext
+    nextPriceStyleList,
+    nextPriceStyle,
+    calcNext,
+    calcRate,
+    calcPercentRate
   };
 }

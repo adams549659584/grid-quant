@@ -5,39 +5,19 @@ export interface INextPrice {
   highSalePrice: number;
 
   /**
-   * 极限涨幅
-   */
-  highSaleRate: number;
-
-  /**
    * 近值-第一压力位附近可以小额减仓，能过就有大机会
    */
   firstSalePrice: number;
 
   /**
-   * 压力位涨幅
-   */
-  firstSaleRate: number;
-
-  /**
-   * 近值-第一支撑位附近开始吸筹，撑不住就先別加仓了
+   * 近值-第一支撑位附近开始吸筹，撑不住就先別加kds仓了
    */
   firstBuyPrice: number;
-
-  /**
-   * 支撑位跌幅
-   */
-  firstBuyRate: number;
 
   /**
    * 极限抄底位，再砸就不会有行情了，看均线如果破位注意止损！
    */
   lowBuyPrice: number;
-
-  /**
-   * 极限跌幅
-   */
-  lowBuyRate: number;
 }
 
 /**
@@ -72,12 +52,8 @@ export function calcNextPrice(closePrice: number, lastHighPrice: number, lastLow
   const lowBuyPrice = mathRound(closePriceAVG - closePriceGap);
   return {
     highSalePrice,
-    highSaleRate: mathRound((highSalePrice / closePrice - 1) * 100, 2),
     firstSalePrice,
-    firstSaleRate: mathRound((firstSalePrice / closePrice - 1) * 100, 2),
     firstBuyPrice,
-    firstBuyRate: mathRound((closePrice / firstBuyPrice - 1) * 100, 2),
-    lowBuyPrice,
-    lowBuyRate: mathRound((closePrice / lowBuyPrice - 1) * 100, 2)
+    lowBuyPrice
   };
 }

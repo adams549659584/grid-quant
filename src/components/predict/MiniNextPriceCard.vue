@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import useStockHistory from '../history/hooks/useStockHistory';
-import BacktestingLog from '../backtesting/BacktestingLog.vue';
+import usePredict from './hooks/usePredict';
 
 const { historyRows, historyFillRowCount } = useStockHistory();
+const { calcPercentRate } = usePredict();
 </script>
 
 <template>
@@ -32,8 +33,8 @@ const { historyRows, historyFillRowCount } = useStockHistory();
         <el-popover placement="top-start" trigger="hover">
           <template #reference>
             <span
-              :class="{ 'close-price-red': row.nowPrice.closePrice >= (row.nextPrice.firstSalePrice + row.nextPrice.firstBuyPrice) / 2 }"
-            >价格({{ row.nowPrice.closePrice.toFixed(3) }})</span>
+              :class="{ 'text-red-500': row.nowPrice.closePrice > row.prevPrice.closePrice, 'text-green-500': row.nowPrice.closePrice < row.prevPrice.closePrice }"
+            >{{ row.nowPrice.closePrice.toFixed(3) }}({{ ((row.nowPrice.closePrice / row.prevPrice.closePrice - 1) * 100).toFixed(2) }}%)</span>
           </template>
           <div>
             <p class="p-1">高：{{ row.nowPrice.highPrice.toFixed(3) }}</p>
@@ -44,22 +45,18 @@ const { historyRows, historyFillRowCount } = useStockHistory();
       </div>
       <div
         class="row bg-red-400"
-      >{{ row.nextPrice.highSalePrice.toFixed(3) }}(+{{ row.nextPrice.highSaleRate.toFixed(2) }}%)</div>
+      >{{ row.nextPrice.highSalePrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.highSalePrice) }})</div>
       <div
         class="row bg-red-300"
-      >{{ row.nextPrice.firstSalePrice.toFixed(3) }}(+{{ row.nextPrice.firstSaleRate.toFixed(2) }}%)</div>
+      >{{ row.nextPrice.firstSalePrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.firstSalePrice) }})</div>
       <div
         class="row bg-green-300"
-      >{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate.toFixed(2) }}%)</div>
+      >{{ row.nextPrice.firstBuyPrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.firstBuyPrice) }})</div>
       <div
         class="row bg-green-400"
-      >{{ row.nextPrice.lowBuyPrice.toFixed(3) }}(-{{ row.nextPrice.lowBuyRate.toFixed(2) }}%)</div>
-      <div
-        class="row"
-      >{{ (row.nextPrice.firstSaleRate + row.nextPrice.firstBuyRate).toFixed(2) }}% - {{ (row.nextPrice.highSaleRate + row.nextPrice.lowBuyRate).toFixed(2) }}%</div>
+      >{{ row.nextPrice.lowBuyPrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.lowBuyPrice) }})</div>
     </div>
     <div class="next-price-box invisible" v-for="i in historyFillRowCount" :key="i"></div>
-    <backtesting-log />
   </div>
 </template>
 

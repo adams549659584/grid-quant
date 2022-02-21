@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import useStockHistory from '../history/hooks/useStockHistory';
-import BacktestingLog from '../backtesting/BacktestingLog.vue';
 import SvgIcon from '../icons/SvgIcon.vue';
 import GridFundsCalc from '../grid/GridFundsCalc.vue';
 import useGrid from '../grid/hooks/useGrid';
+import usePredict from './hooks/usePredict';
 
 const { historyRows, historyFillRowCount, delHistory } = useStockHistory();
 const { isShowPyramidCalc, showPyramidCalc } = useGrid();
+const { calcRate, calcPercentRate } = usePredict();
 </script>
 
 <template>
@@ -50,11 +51,13 @@ const { isShowPyramidCalc, showPyramidCalc } = useGrid();
       <div class="row">
         <div class="column">操作</div>
         <div
-          class="column close-price-green cursor-pointer"
-          :class="{ 'close-price-red': row.nowPrice.closePrice >= (row.nextPrice.firstSalePrice + row.nextPrice.firstBuyPrice) / 2 }"
+          class="column cursor-pointer"
+          :class="{ 'text-red-500': row.nowPrice.closePrice > row.prevPrice.closePrice, 'text-green-500': row.nowPrice.closePrice < row.prevPrice.closePrice }"
         >
           <el-popover placement="top-start" trigger="hover">
-            <template #reference>价格({{ row.nowPrice.closePrice.toFixed(3) }})</template>
+            <template
+              #reference
+            >{{ row.nowPrice.closePrice.toFixed(3) }}({{ ((row.nowPrice.closePrice / row.prevPrice.closePrice - 1) * 100).toFixed(2) }}%)</template>
             <div>
               <p class="p-1">高：{{ row.nowPrice.highPrice.toFixed(3) }}</p>
               <p class="p-1">低：{{ row.nowPrice.lowPrice.toFixed(3) }}</p>
@@ -67,35 +70,34 @@ const { isShowPyramidCalc, showPyramidCalc } = useGrid();
         <div class="column">极限获利位</div>
         <div
           class="column"
-        >{{ row.nextPrice.highSalePrice.toFixed(3) }}(+{{ row.nextPrice.highSaleRate.toFixed(2) }}%)</div>
+        >{{ row.nextPrice.highSalePrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.highSalePrice) }})</div>
       </div>
       <div class="row bg-red-300">
         <div class="column">第一压力位</div>
         <div
           class="column"
-        >{{ row.nextPrice.firstSalePrice.toFixed(3) }}(+{{ row.nextPrice.firstSaleRate.toFixed(2) }}%)</div>
+        >{{ row.nextPrice.firstSalePrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.firstSalePrice) }})</div>
       </div>
       <div class="row bg-green-300">
         <div class="column">第一支撑位</div>
         <div
           class="column"
-        >{{ row.nextPrice.firstBuyPrice.toFixed(3) }}(-{{ row.nextPrice.firstBuyRate.toFixed(2) }}%)</div>
+        >{{ row.nextPrice.firstBuyPrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.firstBuyPrice) }})</div>
       </div>
       <div class="row bg-green-400">
         <div class="column">极限抄底位</div>
         <div
           class="column"
-        >{{ row.nextPrice.lowBuyPrice.toFixed(3) }}(-{{ row.nextPrice.lowBuyRate.toFixed(2) }}%)</div>
+        >{{ row.nextPrice.lowBuyPrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.lowBuyPrice) }})</div>
       </div>
       <div class="row">
         <div class="column">振幅</div>
         <div
           class="column"
-        >{{ (row.nextPrice.firstSaleRate + row.nextPrice.firstBuyRate).toFixed(2) }}% - {{ (row.nextPrice.highSaleRate + row.nextPrice.lowBuyRate).toFixed(2) }}%</div>
+        >{{ ((calcRate(row.prevPrice.closePrice, row.nextPrice.firstSalePrice) - calcRate(row.prevPrice.closePrice, row.nextPrice.firstBuyPrice)) * 100).toFixed(2) }}% - {{ ((calcRate(row.prevPrice.closePrice, row.nextPrice.highSalePrice) - calcRate(row.prevPrice.closePrice, row.nextPrice.lowBuyPrice)) * 100).toFixed(2) }}%</div>
       </div>
     </div>
     <div class="next-price-box invisible" v-for="i in historyFillRowCount" :key="i"></div>
-    <BacktestingLog />
     <GridFundsCalc v-if="isShowPyramidCalc" />
   </div>
 </template>
@@ -120,12 +122,6 @@ const { isShowPyramidCalc, showPyramidCalc } = useGrid();
       @apply border-r;
     }
     @apply text-center truncate w-1/2 p-2;
-    &.close-price-green {
-      @apply text-green-500;
-    }
-    &.close-price-red {
-      @apply text-red-500;
-    }
   }
 }
 </style>
