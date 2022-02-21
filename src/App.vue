@@ -5,6 +5,8 @@ import useStockHistory from './components/history/hooks/useStockHistory';
 import usePredict from './components/predict/hooks/usePredict';
 import GridHeader from './components/header/GridHeader.vue';
 import GridFooter from './components/footer/GridFooter.vue';
+import NextPriceCard from './components/predict/NextPriceCard.vue';
+import MiniNextPriceCard from './components/predict/MiniNextPriceCard.vue';
 import NextPriceTable from './components/predict/NextPriceTable.vue';
 
 const nextPriceTimer = ref(0);
