@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import useBacktesting from '../backtesting/hooks/useBacktesting';
 import useStockHistory from '../history/hooks/useStockHistory';
 import BacktestingLog from '../backtesting/BacktestingLog.vue';
 import SvgIcon from '../icons/SvgIcon.vue';
@@ -7,7 +6,6 @@ import GridFundsCalc from '../grid/GridFundsCalc.vue';
 import useGrid from '../grid/hooks/useGrid';
 
 const { historyRows, historyFillRowCount, delHistory } = useStockHistory();
-const { runBacktesting } = useBacktesting();
 const { isShowPyramidCalc, showPyramidCalc } = useGrid();
 </script>
 
@@ -25,12 +23,12 @@ const { isShowPyramidCalc, showPyramidCalc } = useGrid();
         <svg-icon
           v-if="row.nowPrice.closePrice <= row.nextPrice.firstBuyPrice"
           name="buy"
-          color="#d81e06"
+          color="#1afa29"
         />
         <svg-icon
           v-if="row.nowPrice.closePrice >= row.nextPrice.firstSalePrice"
           name="sale"
-          color="#1afa29"
+          color="#d81e06"
         />
       </div>
       <div class="row p-2 space-x-1">

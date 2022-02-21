@@ -11,8 +11,8 @@ const isShowNextSwitchChange = !isTradeTime;
 
 // 预测/回看当天
 const nextSwitch = ref(true);
-// 详细/简版
-const simpleSwitch = ref(false);
+// 卡片还是表格显示
+const tableSwitch = ref(false);
 
 export default function usePredict() {
   const { updateHistory } = useStockHistory();
@@ -30,6 +30,7 @@ export default function usePredict() {
           market: klineD1.data.market,
           code: klineD1.data.code,
           name: klineD1.data.name,
+          prevPrice: klineDatas[0],
           nowPrice: klineDatas[1],
           nextPrice
         },
@@ -44,7 +45,7 @@ export default function usePredict() {
     isTradeTime,
     isShowNextSwitchChange,
     nextSwitch,
-    simpleSwitch,
+    tableSwitch,
     calcNext
   };
 }
