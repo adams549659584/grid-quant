@@ -195,6 +195,8 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
       };
       pyramidOption.series[0].data.push(data);
     }
+    // 网格交易
+    (pyramidOption.series[1].data as any)[0].name = `${pyramidConfig.code} ${pyramidConfig.name} 金字塔建仓模型`;
     // 金字塔建仓
     pyramidOption.series[2].data = [];
     for (let i = 1; i <= pyramidConfig.layerCount; i++) {

@@ -6,7 +6,7 @@ import { ElMessage } from 'element-plus';
 import { ref } from 'vue';
 
 const dateNowHM = Number(formatNow('Hmm'));
-const isTradeTime = dateNowHM >= 930 && dateNowHM <= 1500;
+const isTradeTime = dateNowHM >= 920 && dateNowHM < 1457;
 const isShowNextSwitchChange = !isTradeTime;
 
 // 预测/回看当天
