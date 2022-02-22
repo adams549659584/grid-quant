@@ -122,7 +122,11 @@ export interface IPyramidConfig {
   /**
    * 金字塔比例
    */
-  rate: number;
+  // rate: number;
+  /**
+   * 金字塔比例（百分比）
+   */
+  percentRate: number;
   /**
    * 金字塔层数
    */
@@ -144,19 +148,20 @@ const pyramidConfig = reactive<IPyramidConfig>({
   firstBuyAmt: 2000,
   firstSalePrice: 0,
   firstSaleAmt: 2000,
-  rate: 0.02,
+  // rate: 0.02,
+  percentRate: 2,
   layerCount: 10,
   initTradeCount: 100
 });
 
 const initPyramidCalc = (dom: HTMLElement) => {
-  pyramidEchart.value = echarts.init(dom);
+  pyramidEchart.value = echarts.init(dom, undefined, { renderer: 'svg' });
   pyramidEchart.value.setOption(pyramidOption);
 };
 const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
   Object.assign(pyramidConfig, config);
   if (!config.firstSalePrice && config.firstBuyPrice) {
-    pyramidConfig.firstSalePrice = mathRound(config.firstBuyPrice * (1 + pyramidConfig.rate), 3);
+    pyramidConfig.firstSalePrice = mathRound(config.firstBuyPrice * (1 + pyramidConfig.percentRate / 100), 3);
   }
   pyramidConfig.initTradeCount = Math.round(pyramidConfig.firstBuyAmt / pyramidConfig.firstBuyPrice / 100) * 100;
   if (pyramidConfig.initTradeCount === 0) {
@@ -171,7 +176,7 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
     // 倒金字塔出货
     pyramidOption.series[0].data = [];
     for (let i = 1; i <= pyramidConfig.layerCount; i++) {
-      const nowPrice = mathRound(pyramidConfig.firstSalePrice * (1 + pyramidConfig.rate * (i - 1)), 3);
+      const nowPrice = mathRound(pyramidConfig.firstSalePrice * (1 + (pyramidConfig.percentRate / 100) * (i - 1)), 3);
       const nowTradeCount = pyramidConfig.initTradeCount * i;
       const usedAmt = mathRound(nowPrice * nowTradeCount, 2);
       const nowTotalSaleAmt = (totalSaleAmt += usedAmt);
@@ -186,7 +191,7 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
           formatter: () => {
             return `
             <p class="text-left">${i}层出货：￥${usedAmt.toFixed(2)}</p>
-            <p class="text-left">总涨幅：${(pyramidConfig.rate * i * 100).toFixed(0)}%</p>
+            <p class="text-left">总涨幅：${(pyramidConfig.percentRate * i).toFixed(2)}%</p>
             <p class="text-left">总卖出份额：${nowTotalSaleCount}</p>
             <p class="text-left">总产出：￥${nowTotalSaleAmt.toFixed(2)}</p>
             `;
@@ -200,7 +205,7 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
     // 金字塔建仓
     pyramidOption.series[2].data = [];
     for (let i = 1; i <= pyramidConfig.layerCount; i++) {
-      const nowPrice = mathRound(pyramidConfig.firstBuyPrice * (1 - pyramidConfig.rate * (i - 1)), 3);
+      const nowPrice = mathRound(pyramidConfig.firstBuyPrice * (1 - (pyramidConfig.percentRate / 100) * (i - 1)), 3);
       const nowTradeCount = pyramidConfig.initTradeCount * i;
       const usedAmt = mathRound(nowPrice * nowTradeCount, 2);
       const nowTotalBuyAmt = (totalBuyAmt += usedAmt);
@@ -216,7 +221,7 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
             return `
             <p class="text-left">${i}层建仓：￥${usedAmt.toFixed(2)}</p>
             <p class="text-left">持仓成本：￥${mathRound(nowTotalBuyAmt / nowTotalBuyCount, 3).toFixed(3)}</p>
-            <p class="text-left">总跌幅：${(pyramidConfig.rate * (i - 1) * 100).toFixed(0)}%</p>
+            <p class="text-left">总跌幅：${(pyramidConfig.percentRate * (i - 1)).toFixed(2)}%</p>
             <p class="text-left">总投入：￥${nowTotalBuyAmt.toFixed(2)}</p>
             `;
           }
@@ -226,7 +231,7 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
     }
   }
   // if (!Array.isArray(pyramidOption.title) && pyramidOption.title) {
-  //   pyramidOption.title.text = `预计：总跌幅${pyramidConfig.rate * 100 * pyramidConfig.layerCount}% ， 总投入￥${totalUsedAmt.toFixed(
+  //   pyramidOption.title.text = `预计：总跌幅${pyramidConfig.percentRate * pyramidConfig.layerCount}% ， 总投入￥${totalUsedAmt.toFixed(
   //     2
   //   )} \n 总持仓${totalHoldCount} ， 成本￥${mathRound(totalUsedAmt / totalHoldCount, 3)}`;
   // }
@@ -234,7 +239,7 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
   if (pyramidEchart.value) {
     pyramidEchart.value.setOption(pyramidOption);
   }
-  // console.log(`echart option : `, JSON.stringify(pyramidOption));
+  console.log(`echart option : `, JSON.stringify(pyramidOption));
   isShowPyramidCalc.value = true;
 };
 const hidePyramidCalc = () => (isShowPyramidCalc.value = false);

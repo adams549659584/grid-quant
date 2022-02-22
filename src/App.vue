@@ -101,16 +101,9 @@ onBeforeUnmount(() => {
 <template>
   <div>
     <grid-header />
-    <main>
+    <main class="min-h-[80vh]">
       <header class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden">
-        <el-switch
-          v-if="isShowNextSwitchChange"
-          v-model="nextSwitch"
-          inline-prompt
-          active-text="预"
-          inactive-text="回"
-          @change="nextSwitchChange"
-        />
+        <el-switch v-if="isShowNextSwitchChange" v-model="nextSwitch" inline-prompt active-text="预" inactive-text="回" @change="nextSwitchChange" />
         <stock-search />
         <el-select class="w-[6.5rem]" v-model="nextPriceStyle">
           <el-option v-for="item in nextPriceStyleList" :key="item" :label="item" :value="item"></el-option>
