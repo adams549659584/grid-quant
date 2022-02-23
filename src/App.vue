@@ -7,6 +7,8 @@ import GridHeader from './components/header/GridHeader.vue';
 import GridFooter from './components/footer/GridFooter.vue';
 import NextPriceCard from './components/predict/NextPriceCard.vue';
 import MiniNextPriceCard from './components/predict/MiniNextPriceCard.vue';
+import StockDetail from './components/stockDetail/StockDetail.vue';
+import useStockDetail from './components/stockDetail/hooks/useStockDetail';
 // import NextPriceTable from './components/predict/NextPriceTable.vue';
 
 const nextPriceTimer = ref(0);
@@ -64,6 +66,7 @@ const defaultStocks = [
 ];
 const { isTradeTime, isShowNextSwitchChange, nextSwitch, nextPriceStyleList, nextPriceStyle, calcNext } = usePredict();
 let { historyRows, getHistory, rowFilters, rowSelectedFilter, rowSorts, rowSelectedSort } = useStockHistory();
+const { isShowStockDetail } = useStockDetail();
 
 const nextSwitchChange = async () => {
   initNextPriceList();
@@ -119,6 +122,7 @@ onBeforeUnmount(() => {
         <NextPriceCard v-if="nextPriceStyle === 'Card'" />
         <MiniNextPriceCard v-else-if="nextPriceStyle === 'MiniCard'" />
         <!-- <NextPriceTable v-else-if="nextPriceStyle === 'Table'" /> -->
+        <StockDetail v-if="isShowStockDetail" />
       </main>
     </main>
     <grid-footer />

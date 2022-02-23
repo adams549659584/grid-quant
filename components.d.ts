@@ -22,6 +22,7 @@ declare module 'vue' {
     MiniNextPriceCard: typeof import('./src/components/predict/MiniNextPriceCard.vue')['default']
     NextPriceCard: typeof import('./src/components/predict/NextPriceCard.vue')['default']
     NextPriceTable: typeof import('./src/components/predict/NextPriceTable.vue')['default']
+    StockDetail: typeof import('./src/components/stockDetail/StockDetail.vue')['default']
     StockKLine: typeof import('./src/components/kline/StockKLine.vue')['default']
     StockSearch: typeof import('./src/components/search/StockSearch.vue')['default']
     SvgIcon: typeof import('./src/components/icons/SvgIcon.vue')['default']
