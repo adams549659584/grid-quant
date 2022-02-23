@@ -2,7 +2,6 @@ import { ref, reactive, onMounted } from 'vue';
 import * as echarts from 'echarts/core';
 import { TitleComponentOption, ToolboxComponentOption, TooltipComponentOption } from 'echarts/components';
 import { FunnelSeriesOption } from 'echarts/charts';
-import { IHistoryRow } from '@/api/stock/model/IHistoryRow';
 import { mathRound } from '@/helpers/StockHelper';
 import { ElMessage } from 'element-plus';
 

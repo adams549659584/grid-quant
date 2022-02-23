@@ -6,6 +6,53 @@ const historySearchResultKey = 'history_search_results';
 let historyRows = ref<IHistoryRow[]>();
 const isMobileScreen = window.screen.width <= 768;
 
+const rowFilters = ['无过滤', '适量买入', '少量买入', '少量卖出', '适量卖出'] as const;
+const rowSelectedFilter = ref<typeof rowFilters[number]>(rowFilters[0]);
+const rowSorts = ['无排序', '涨幅', '跌幅'] as const;
+const rowSelectedSort = ref<typeof rowSorts[number]>(rowSorts[0]);
+
+/**
+ * 过滤及排序后的
+ */
+const filterHistoryRows = computed(() => {
+  let filterRows: IHistoryRow[] = [];
+  if (historyRows.value) {
+    switch (rowSelectedFilter.value) {
+      case '适量买入':
+        filterRows = historyRows.value.filter((row) => row.nowPrice.closePrice <= row.nextPrice.lowBuyPrice);
+        break;
+      case '少量买入':
+        filterRows = historyRows.value.filter((row) => row.nowPrice.closePrice <= row.nextPrice.firstBuyPrice && row.nowPrice.closePrice > row.nextPrice.lowBuyPrice);
+        break;
+      case '少量卖出':
+        filterRows = historyRows.value.filter((row) => row.nowPrice.closePrice >= row.nextPrice.firstSalePrice && row.nowPrice.closePrice < row.nextPrice.highSalePrice);
+        break;
+      case '适量卖出':
+        filterRows = historyRows.value.filter((row) => row.nowPrice.closePrice >= row.nextPrice.highSalePrice);
+        break;
+      default:
+        filterRows = [...historyRows.value];
+        break;
+    }
+
+    switch (rowSelectedSort.value) {
+      case '涨幅':
+        filterRows = filterRows.sort((a, b) => -sortRate(a, b));
+        break;
+      case '跌幅':
+        filterRows = filterRows.sort((a, b) => sortRate(a, b));
+        break;
+    }
+  }
+  return filterRows;
+});
+
+const sortRate = (a: IHistoryRow, b: IHistoryRow) => {
+  const rateA = a.nowPrice.closePrice / a.prevPrice.closePrice - 1;
+  const rateB = b.nowPrice.closePrice / b.prevPrice.closePrice - 1;
+  return rateA - rateB;
+};
+
 // 填充保持观感
 const historyFillRowCount = computed(() => {
   if (!historyRows.value || historyRows.value.length === 0) {
@@ -75,9 +122,14 @@ export default function useStockHistory() {
   return {
     isMobileScreen,
     historyRows,
+    filterHistoryRows,
     historyFillRowCount,
     getHistory,
     updateHistory,
-    delHistory
+    delHistory,
+    rowFilters,
+    rowSelectedFilter,
+    rowSorts,
+    rowSelectedSort
   };
 }

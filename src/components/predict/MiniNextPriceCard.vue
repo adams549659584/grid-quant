@@ -2,13 +2,13 @@
 import useStockHistory from '../history/hooks/useStockHistory';
 import usePredict from './hooks/usePredict';
 
-const { historyRows, historyFillRowCount } = useStockHistory();
+const { filterHistoryRows, historyFillRowCount } = useStockHistory();
 const { calcPercentRate } = usePredict();
 </script>
 
 <template>
-  <div class="flex justify-around items-center flex-wrap text-gray-800" v-if="historyRows && historyRows.length > 0">
-    <div class="next-price-box relative rounded-md shadow-md shadow-gray-300" v-for="(row, index) in historyRows" :key="index">
+  <div class="flex justify-around items-center flex-wrap text-gray-800" v-if="filterHistoryRows && filterHistoryRows.length > 0">
+    <div class="next-price-box relative rounded-md shadow-md shadow-gray-300" v-for="(row, index) in filterHistoryRows" :key="index">
       <div class="absolute top-3 left-3 opacity-50 w-[4rem] h-[4rem]" v-if="row.nextPrice.firstSalePrice > row.nextPrice.firstBuyPrice">
         <svg-icon v-if="row.nowPrice.closePrice <= row.nextPrice.firstBuyPrice" name="buy" color="#1afa29" />
         <svg-icon v-if="row.nowPrice.closePrice >= row.nextPrice.firstSalePrice" name="sale" color="#d81e06" />
@@ -35,6 +35,7 @@ const { calcPercentRate } = usePredict();
     </div>
     <div class="next-price-box invisible" v-for="i in historyFillRowCount" :key="i"></div>
   </div>
+  <div v-else class="text-center h-[30rem] leading-[30rem] text-lg text-gray-400">暂无数据</div>
 </template>
 
 <style lang="scss" scoped>

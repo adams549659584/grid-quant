@@ -59,7 +59,9 @@ const filterOpt = (value: string, row: IHistoryRow) => {
               'text-stocks-red': scope.row.nowPrice.closePrice > scope.row.prevPrice.closePrice,
               'text-stocks-green': scope.row.nowPrice.closePrice < scope.row.prevPrice.closePrice
             }"
-          >{{ scope.row.nowPrice.closePrice.toFixed(3) }}</div>
+          >
+            {{ scope.row.nowPrice.closePrice.toFixed(3) }}
+          </div>
         </template>
       </el-table-column>
       <el-table-column label="涨跌幅" sortable :sort-method="sortRate">
@@ -69,7 +71,9 @@ const filterOpt = (value: string, row: IHistoryRow) => {
               'text-stocks-red': scope.row.nowPrice.closePrice > scope.row.prevPrice.closePrice,
               'text-stocks-green': scope.row.nowPrice.closePrice < scope.row.prevPrice.closePrice
             }"
-          >{{ ((scope.row.nowPrice.closePrice / scope.row.prevPrice.closePrice - 1) * 100).toFixed(2) }}%</div>
+          >
+            {{ calcPercentRate(scope.row.prevPrice.closePrice, scope.row.nowPrice.closePrice) }}
+          </div>
         </template>
       </el-table-column>
       <el-table-column v-if="!isMobileScreen" label="极限获利位">
@@ -105,22 +109,18 @@ const filterOpt = (value: string, row: IHistoryRow) => {
       >
         <template #default="scope">
           <div>
-            <span
-              class="text-green-500"
-              v-if="scope.row.nowPrice.closePrice <= scope.row.nextPrice.lowBuyPrice"
-            >适量买入</span>
+            <span class="text-green-500" v-if="scope.row.nowPrice.closePrice <= scope.row.nextPrice.lowBuyPrice">适量买入</span>
             <span
               class="text-green-400"
               v-else-if="scope.row.nowPrice.closePrice <= scope.row.nextPrice.firstBuyPrice && scope.row.nowPrice.closePrice > scope.row.nextPrice.lowBuyPrice"
-            >少量买入</span>
+              >少量买入</span
+            >
             <span
               class="text-red-400"
               v-else-if="scope.row.nowPrice.closePrice >= scope.row.nextPrice.firstSalePrice && scope.row.nowPrice.closePrice < scope.row.nextPrice.highSalePrice"
-            >少量卖出</span>
-            <span
-              class="text-red-500"
-              v-else-if="scope.row.nowPrice.closePrice >= scope.row.nextPrice.highSalePrice"
-            >适量卖出</span>
+              >少量卖出</span
+            >
+            <span class="text-red-500" v-else-if="scope.row.nowPrice.closePrice >= scope.row.nextPrice.highSalePrice">适量卖出</span>
             <span v-else>无</span>
           </div>
         </template>

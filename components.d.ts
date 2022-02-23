@@ -16,8 +16,6 @@ declare module 'vue' {
     ElPopover: typeof import('element-plus/es')['ElPopover']
     ElSelect: typeof import('element-plus/es')['ElSelect']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
-    ElTable: typeof import('element-plus/es')['ElTable']
-    ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
     GridFooter: typeof import('./src/components/footer/GridFooter.vue')['default']
     GridFundsCalc: typeof import('./src/components/grid/GridFundsCalc.vue')['default']
     GridHeader: typeof import('./src/components/header/GridHeader.vue')['default']

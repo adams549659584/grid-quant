@@ -7,7 +7,7 @@ import GridHeader from './components/header/GridHeader.vue';
 import GridFooter from './components/footer/GridFooter.vue';
 import NextPriceCard from './components/predict/NextPriceCard.vue';
 import MiniNextPriceCard from './components/predict/MiniNextPriceCard.vue';
-import NextPriceTable from './components/predict/NextPriceTable.vue';
+// import NextPriceTable from './components/predict/NextPriceTable.vue';
 
 const nextPriceTimer = ref(0);
 const nextPriceTimeout = ref(1000 * 10);
@@ -63,7 +63,7 @@ const defaultStocks = [
   '1.510650' // 金融地产ETF
 ];
 const { isTradeTime, isShowNextSwitchChange, nextSwitch, nextPriceStyleList, nextPriceStyle, calcNext } = usePredict();
-let { historyRows, getHistory } = useStockHistory();
+let { historyRows, getHistory, rowFilters, rowSelectedFilter, rowSorts, rowSelectedSort } = useStockHistory();
 
 const nextSwitchChange = async () => {
   initNextPriceList();
@@ -102,17 +102,23 @@ onBeforeUnmount(() => {
   <div>
     <grid-header />
     <main class="min-h-[80vh]">
-      <header class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden">
+      <header class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap">
         <el-switch v-if="isShowNextSwitchChange" v-model="nextSwitch" inline-prompt active-text="预" inactive-text="回" @change="nextSwitchChange" />
         <stock-search />
         <el-select class="w-[6.5rem]" v-model="nextPriceStyle">
           <el-option v-for="item in nextPriceStyleList" :key="item" :label="item" :value="item"></el-option>
         </el-select>
+        <el-select class="w-[8rem] mt-4 md:mt-0" v-model="rowSelectedFilter">
+          <el-option v-for="item in rowFilters" :key="item" :label="item" :value="item"></el-option>
+        </el-select>
+        <el-select class="w-[8rem] mt-4 md:mt-0" v-model="rowSelectedSort">
+          <el-option v-for="item in rowSorts" :key="item" :label="item" :value="item"></el-option>
+        </el-select>
       </header>
       <main>
         <NextPriceCard v-if="nextPriceStyle === 'Card'" />
         <MiniNextPriceCard v-else-if="nextPriceStyle === 'MiniCard'" />
-        <NextPriceTable v-else-if="nextPriceStyle === 'Table'" />
+        <!-- <NextPriceTable v-else-if="nextPriceStyle === 'Table'" /> -->
       </main>
     </main>
     <grid-footer />

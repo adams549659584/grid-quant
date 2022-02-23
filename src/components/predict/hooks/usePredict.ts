@@ -12,7 +12,8 @@ const isShowNextSwitchChange = !isTradeTime;
 // 预测/回看当天
 const nextSwitch = ref(true);
 // 大卡片 小卡片 表格
-const nextPriceStyleList = ['Card', 'MiniCard', 'Table'] as const;
+// const nextPriceStyleList = ['Card', 'MiniCard', 'Table'] as const;
+const nextPriceStyleList = ['Card', 'MiniCard'] as const;
 const nextPriceStyle = ref<typeof nextPriceStyleList[number]>(nextPriceStyleList[0]);
 
 /**
