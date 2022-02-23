@@ -7,34 +7,19 @@ const { calcPercentRate } = usePredict();
 </script>
 
 <template>
-  <div
-    class="flex justify-around items-center flex-wrap text-gray-800"
-    v-if="historyRows && historyRows.length > 0"
-  >
-    <div
-      class="next-price-box relative rounded-md shadow-md shadow-gray-300"
-      v-for="(row, index) in historyRows"
-      :key="index"
-    >
-      <div class="absolute top-3 left-3 opacity-50 w-[4rem] h-[4rem]">
-        <svg-icon
-          v-if="row.nowPrice.closePrice <= row.nextPrice.firstBuyPrice"
-          name="buy"
-          color="#d81e06"
-        />
-        <svg-icon
-          v-if="row.nowPrice.closePrice >= row.nextPrice.firstSalePrice"
-          name="sale"
-          color="#1afa29"
-        />
+  <div class="flex justify-around items-center flex-wrap text-gray-800" v-if="historyRows && historyRows.length > 0">
+    <div class="next-price-box relative rounded-md shadow-md shadow-gray-300" v-for="(row, index) in historyRows" :key="index">
+      <div class="absolute top-3 left-3 opacity-50 w-[4rem] h-[4rem]" v-if="row.nextPrice.firstSalePrice > row.nextPrice.firstBuyPrice">
+        <svg-icon v-if="row.nowPrice.closePrice <= row.nextPrice.firstBuyPrice" name="buy" color="#1afa29" />
+        <svg-icon v-if="row.nowPrice.closePrice >= row.nextPrice.firstSalePrice" name="sale" color="#d81e06" />
       </div>
       <div class="row p-2 text-center truncate">{{ `${row.code} ${row.name}` }}</div>
       <div class="row cursor-pointer">
         <el-popover placement="top-start" trigger="hover">
           <template #reference>
-            <span
-              :class="{ 'text-red-500': row.nowPrice.closePrice > row.prevPrice.closePrice, 'text-green-500': row.nowPrice.closePrice < row.prevPrice.closePrice }"
-            >{{ row.nowPrice.closePrice.toFixed(3) }}({{ ((row.nowPrice.closePrice / row.prevPrice.closePrice - 1) * 100).toFixed(2) }}%)</span>
+            <span :class="{ 'text-red-500': row.nowPrice.closePrice > row.prevPrice.closePrice, 'text-green-500': row.nowPrice.closePrice < row.prevPrice.closePrice }"
+              >{{ row.nowPrice.closePrice.toFixed(3) }}({{ ((row.nowPrice.closePrice / row.prevPrice.closePrice - 1) * 100).toFixed(2) }}%)</span
+            >
           </template>
           <div>
             <p class="p-1">高：{{ row.nowPrice.highPrice.toFixed(3) }}</p>
@@ -43,18 +28,10 @@ const { calcPercentRate } = usePredict();
           </div>
         </el-popover>
       </div>
-      <div
-        class="row bg-red-400"
-      >{{ row.nextPrice.highSalePrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.highSalePrice) }})</div>
-      <div
-        class="row bg-red-300"
-      >{{ row.nextPrice.firstSalePrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.firstSalePrice) }})</div>
-      <div
-        class="row bg-green-300"
-      >{{ row.nextPrice.firstBuyPrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.firstBuyPrice) }})</div>
-      <div
-        class="row bg-green-400"
-      >{{ row.nextPrice.lowBuyPrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.lowBuyPrice) }})</div>
+      <div class="row bg-red-400">{{ row.nextPrice.highSalePrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.highSalePrice) }})</div>
+      <div class="row bg-red-300">{{ row.nextPrice.firstSalePrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.firstSalePrice) }})</div>
+      <div class="row bg-green-300">{{ row.nextPrice.firstBuyPrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.firstBuyPrice) }})</div>
+      <div class="row bg-green-400">{{ row.nextPrice.lowBuyPrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.lowBuyPrice) }})</div>
     </div>
     <div class="next-price-box invisible" v-for="i in historyFillRowCount" :key="i"></div>
   </div>
