@@ -105,18 +105,31 @@ onBeforeUnmount(() => {
   <div>
     <grid-header />
     <main class="min-h-[80vh]">
-      <header class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap">
-        <el-switch v-if="isShowNextSwitchChange" v-model="nextSwitch" inline-prompt active-text="预" inactive-text="回" @change="nextSwitchChange" />
+      <header
+        class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap"
+      >
+        <el-switch
+          v-if="isShowNextSwitchChange"
+          v-model="nextSwitch"
+          inline-prompt
+          active-text="预"
+          inactive-text="回"
+          @change="nextSwitchChange"
+        />
         <stock-search />
-        <el-select class="w-[6.5rem]" v-model="nextPriceStyle">
-          <el-option v-for="item in nextPriceStyleList" :key="item" :label="item" :value="item"></el-option>
-        </el-select>
-        <el-select class="w-[8rem] mt-4 md:mt-0" v-model="rowSelectedFilter">
-          <el-option v-for="item in rowFilters" :key="item" :label="item" :value="item"></el-option>
-        </el-select>
-        <el-select class="w-[8rem] mt-4 md:mt-0" v-model="rowSelectedSort">
-          <el-option v-for="item in rowSorts" :key="item" :label="item" :value="item"></el-option>
-        </el-select>
+        <div
+          class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap mt-4 md:mt-0"
+        >
+          <el-select class="w-[6.5rem]" v-model="nextPriceStyle">
+            <el-option v-for="item in nextPriceStyleList" :key="item" :label="item" :value="item"></el-option>
+          </el-select>
+          <el-select class="w-[6.5rem]" v-model="rowSelectedFilter">
+            <el-option v-for="item in rowFilters" :key="item" :label="item" :value="item"></el-option>
+          </el-select>
+          <el-select class="w-[5.5rem]" v-model="rowSelectedSort">
+            <el-option v-for="item in rowSorts" :key="item" :label="item" :value="item"></el-option>
+          </el-select>
+        </div>
       </header>
       <main>
         <NextPriceCard v-if="nextPriceStyle === 'Card'" />
