@@ -79,6 +79,9 @@ const initNextPriceList = async () => {
     defaultStocks.forEach((secid) => calcNext(secid));
   }
   if (isTradeTime) {
+    if (nextPriceTimer.value) {
+      clearTimeout(nextPriceTimer.value);
+    }
     nextPriceTimer.value = window.setTimeout(() => {
       initNextPriceList();
     }, nextPriceTimeout.value);
