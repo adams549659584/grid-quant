@@ -24,13 +24,13 @@ const sortRate = (a: IHistoryRow, b: IHistoryRow) => {
 
 const filterOpt = (value: string, row: IHistoryRow) => {
   switch (value) {
-    case '适量买入':
+    case '极限抄底':
       return row.nowPrice.closePrice <= row.nextPrice.lowBuyPrice;
-    case '少量买入':
+    case '第一支撑':
       return row.nowPrice.closePrice <= row.nextPrice.firstBuyPrice && row.nowPrice.closePrice > row.nextPrice.lowBuyPrice;
-    case '少量卖出':
+    case '第一压力':
       return row.nowPrice.closePrice >= row.nextPrice.firstSalePrice && row.nowPrice.closePrice < row.nextPrice.highSalePrice;
-    case '适量卖出':
+    case '极限获利':
       return row.nowPrice.closePrice >= row.nextPrice.highSalePrice;
   }
   return true;
@@ -99,28 +99,28 @@ const filterOpt = (value: string, row: IHistoryRow) => {
       <el-table-column
         label="操作建议"
         :filters="[
-          { text: '适量买入', value: '适量买入' },
-          { text: '少量买入', value: '少量买入' },
-          { text: '少量卖出', value: '少量卖出' },
-          { text: '适量卖出', value: '适量卖出' },
+          { text: '极限抄底', value: '极限抄底' },
+          { text: '第一支撑', value: '第一支撑' },
+          { text: '第一压力', value: '第一压力' },
+          { text: '极限获利', value: '极限获利' },
           { text: '无', value: '无' }
         ]"
         :filter-method="filterOpt"
       >
         <template #default="scope">
           <div>
-            <span class="text-green-500" v-if="scope.row.nowPrice.closePrice <= scope.row.nextPrice.lowBuyPrice">适量买入</span>
+            <span class="text-green-500" v-if="scope.row.nowPrice.closePrice <= scope.row.nextPrice.lowBuyPrice">极限抄底</span>
             <span
               class="text-green-400"
               v-else-if="scope.row.nowPrice.closePrice <= scope.row.nextPrice.firstBuyPrice && scope.row.nowPrice.closePrice > scope.row.nextPrice.lowBuyPrice"
-              >少量买入</span
+              >第一支撑</span
             >
             <span
               class="text-red-400"
               v-else-if="scope.row.nowPrice.closePrice >= scope.row.nextPrice.firstSalePrice && scope.row.nowPrice.closePrice < scope.row.nextPrice.highSalePrice"
-              >少量卖出</span
+              >第一压力</span
             >
-            <span class="text-red-500" v-else-if="scope.row.nowPrice.closePrice >= scope.row.nextPrice.highSalePrice">适量卖出</span>
+            <span class="text-red-500" v-else-if="scope.row.nowPrice.closePrice >= scope.row.nextPrice.highSalePrice">极限获利</span>
             <span v-else>无</span>
           </div>
         </template>

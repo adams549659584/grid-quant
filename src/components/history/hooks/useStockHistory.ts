@@ -6,7 +6,7 @@ const historySearchResultKey = 'history_search_results';
 let historyRows = ref<IHistoryRow[]>();
 const isMobileScreen = window.screen.width <= 768;
 
-const rowFilters = ['无过滤', '适量买入', '少量买入', '少量卖出', '适量卖出'] as const;
+const rowFilters = ['无过滤', '极限抄底', '第一支撑', '第一压力', '极限获利'] as const;
 const rowSelectedFilter = ref<typeof rowFilters[number]>(rowFilters[0]);
 const rowSorts = ['无排序', '涨幅', '跌幅'] as const;
 const rowSelectedSort = ref<typeof rowSorts[number]>(rowSorts[0]);
@@ -18,16 +18,16 @@ const filterHistoryRows = computed(() => {
   let filterRows: IHistoryRow[] = [];
   if (historyRows.value) {
     switch (rowSelectedFilter.value) {
-      case '适量买入':
+      case '极限抄底':
         filterRows = historyRows.value.filter((row) => row.nowPrice.closePrice <= row.nextPrice.lowBuyPrice);
         break;
-      case '少量买入':
+      case '第一支撑':
         filterRows = historyRows.value.filter((row) => row.nowPrice.closePrice <= row.nextPrice.firstBuyPrice && row.nowPrice.closePrice > row.nextPrice.lowBuyPrice);
         break;
-      case '少量卖出':
+      case '第一压力':
         filterRows = historyRows.value.filter((row) => row.nowPrice.closePrice >= row.nextPrice.firstSalePrice && row.nowPrice.closePrice < row.nextPrice.highSalePrice);
         break;
-      case '适量卖出':
+      case '极限获利':
         filterRows = historyRows.value.filter((row) => row.nowPrice.closePrice >= row.nextPrice.highSalePrice);
         break;
       default:
@@ -55,10 +55,10 @@ const sortRate = (a: IHistoryRow, b: IHistoryRow) => {
 
 // 填充保持观感
 const historyFillRowCount = computed(() => {
-  if (!historyRows.value || historyRows.value.length === 0) {
+  if (!filterHistoryRows.value || filterHistoryRows.value.length === 0) {
     return 0;
   }
-  const nowCount = historyRows.value.length;
+  const nowCount = filterHistoryRows.value.length;
   const screenWidth = window.screen.width;
   const { nextPriceStyle } = usePredict();
   if (nextPriceStyle.value === 'MiniCard') {
