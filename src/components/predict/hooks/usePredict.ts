@@ -52,7 +52,7 @@ export default function usePredict() {
           market: klineD1.data.market,
           code: klineD1.data.code,
           name: klineD1.data.name,
-          prevPrice: klineData,
+          prevPrice: klineDatas[0],
           nowPrice: klineDatas[1],
           nextPrice
         },
