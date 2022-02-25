@@ -161,7 +161,6 @@ const initPyramidCalc = (dom: HTMLElement) => {
   pyramidEchart.value.setOption(pyramidOption);
 };
 const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
-  const { isMobileScreen } = useStockHistory();
   if (pyramidConfigList.value.length === 0) {
     initPyramidConfig();
   }
@@ -172,6 +171,11 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
     pyramidConfig.firstSalePrice = mathRound(config.firstBuyPrice * (1 + pyramidConfig.percentRate / 100), 3);
   }
   pyramidConfig.initTradeCount = Math.round(pyramidConfig.firstBuyAmt / pyramidConfig.firstBuyPrice / 100) * 100;
+  handlePyramidConfig();
+  // console.log(`echart option : `, JSON.stringify(pyramidOption));
+  isShowPyramidCalc.value = true;
+};
+const handlePyramidConfig = () => {
   if (pyramidConfig.initTradeCount === 0) {
     ElMessage.warning(`单手金额超出最低建仓金额￥${pyramidConfig.firstBuyAmt.toFixed()}，默认设为1手`);
     pyramidConfig.initTradeCount = 100;
@@ -181,6 +185,7 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
   let totalSaleAmt = 0;
   let totalSaleCount = 0;
   if (Array.isArray(pyramidOption.series)) {
+    const { isMobileScreen } = useStockHistory();
     // 倒金字塔出货
     pyramidOption.series[0].width = isMobileScreen ? '40%' : '70%';
     pyramidOption.series[0].data = [];
@@ -250,14 +255,12 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
   if (pyramidEchart.value) {
     pyramidEchart.value.setOption(pyramidOption);
   }
-  // console.log(`echart option : `, JSON.stringify(pyramidOption));
-  isShowPyramidCalc.value = true;
 };
 const hidePyramidCalc = () => (isShowPyramidCalc.value = false);
 const refreshPyramidCalc = () => {
   pyramidConfig.firstBuyAmt = mathRound(pyramidConfig.firstBuyPrice * pyramidConfig.initTradeCount, 2);
   pyramidConfig.firstSaleAmt = mathRound(pyramidConfig.firstSaleAmt * pyramidConfig.initTradeCount, 2);
-  pyramidConfig && showPyramidCalc(pyramidConfig);
+  pyramidConfig && handlePyramidConfig();
 };
 
 const PyramidConfigCacheKey = 'pyramid_config_cache';
