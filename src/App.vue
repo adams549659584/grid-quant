@@ -9,8 +9,10 @@ import NextPriceCard from './components/predict/NextPriceCard.vue';
 import MiniNextPriceCard from './components/predict/MiniNextPriceCard.vue';
 import StockDetail from './components/stockDetail/StockDetail.vue';
 import useStockDetail from './components/stockDetail/hooks/useStockDetail';
+import { getWSStockListApi } from './api/stock/stock-api';
 // import NextPriceTable from './components/predict/NextPriceTable.vue';
 
+const stockEvtSource = ref<EventSource>();
 const nextPriceTimer = ref(0);
 const nextPriceTimeout = ref(1000 * 10);
 const defaultStocks = [
@@ -91,6 +93,17 @@ const initNextPriceList = async () => {
 const init = () => {
   historyRows.value = getHistory();
   initNextPriceList();
+
+  // todo 改为服务器推送
+  const stockListApi = getWSStockListApi(
+    2,
+    historyRows.value.map((x) => `${x.market}.${x.code}`)
+  );
+  // stockEvtSource.value = new EventSource(stockListApi);
+  // stockEvtSource.value.onmessage = (ev: MessageEvent<{ data: string }>) => {
+  //   console.log(`stockEvtSource : `, ev.data);
+  //   // JSON.parse(ev.data)
+  // };
 };
 
 onMounted(() => {
@@ -101,6 +114,9 @@ onBeforeUnmount(() => {
   if (nextPriceTimer.value) {
     clearTimeout(nextPriceTimer.value);
   }
+  if (stockEvtSource.value) {
+    stockEvtSource.value.close();
+  }
 });
 </script>
 
@@ -108,21 +124,10 @@ onBeforeUnmount(() => {
   <div>
     <grid-header />
     <main class="min-h-[80vh]">
-      <header
-        class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap"
-      >
-        <el-switch
-          v-if="isShowNextSwitchChange"
-          v-model="nextSwitch"
-          inline-prompt
-          active-text="预"
-          inactive-text="回"
-          @change="nextSwitchChange"
-        />
+      <header class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap">
+        <el-switch v-if="isShowNextSwitchChange" v-model="nextSwitch" inline-prompt active-text="预" inactive-text="回" @change="nextSwitchChange" />
         <stock-search />
-        <div
-          class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap mt-4 md:mt-0"
-        >
+        <div class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap mt-4 md:mt-0">
           <el-select class="w-[6.5rem]" v-model="nextPriceStyle">
             <el-option v-for="item in nextPriceStyleList" :key="item" :label="item" :value="item"></el-option>
           </el-select>

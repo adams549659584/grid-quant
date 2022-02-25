@@ -66,3 +66,31 @@ export async function getKLineD1(secid: string, limitCount: number) {
   const klineRes = await jsonp<IKLineResult>(url);
   return handleKLineData(klineRes);
 }
+
+const quotePath = () => {
+  const rnd = Math.floor(Math.random() * (99 - 1)) + 1;
+  return 'https://' + rnd + '.push2.eastmoney.com/';
+};
+
+/**
+ * 获取股票信息API
+ */
+export function getWSStockListApi(refeshtime: 2 | 5 | 10, secids: string[]) {
+  const count = secids.length;
+  const postr = '&po=1';
+  const pxstr = '';
+  const fields = ['f2', 'f12', 'f13', 'f14', 'f15', 'f16', 'f17', 'f18'];
+  return (
+    quotePath() +
+    'api/qt/ulist/sse?invt=3&pi=0&pz=' +
+    count +
+    '&mpi=' +
+    refeshtime +
+    '&secids=' +
+    secids +
+    '&ut=6d2ffaa6a585d612eda28417681d58fb&fields=' +
+    fields.join(',') +
+    postr +
+    pxstr
+  );
+}
