@@ -1,4 +1,4 @@
-import { ref, reactive, onMounted } from 'vue';
+import { ref, reactive } from 'vue';
 import * as echarts from 'echarts/core';
 import { TitleComponentOption, ToolboxComponentOption, TooltipComponentOption } from 'echarts/components';
 import { FunnelSeriesOption } from 'echarts/charts';
@@ -153,6 +153,8 @@ const pyramidConfig = reactive<IPyramidConfig>({
   layerCount: 10,
   initTradeCount: 100
 });
+// 金字塔配置缓存
+const pyramidConfigList = ref<IPyramidConfig[]>([]);
 
 const initPyramidCalc = (dom: HTMLElement) => {
   pyramidEchart.value = echarts.init(dom, undefined, { renderer: 'svg' });
@@ -160,8 +162,13 @@ const initPyramidCalc = (dom: HTMLElement) => {
 };
 const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
   const { isMobileScreen } = useStockHistory();
-  Object.assign(pyramidConfig, config);
-  if (!config.firstSalePrice && config.firstBuyPrice) {
+  if (pyramidConfigList.value.length === 0) {
+    initPyramidConfig();
+  }
+  const cacheConfig = pyramidConfigList.value.find((x) => x.market === config.market && x.code === config.code);
+  // console.log(`showPyramidCalc showPyramidCalc :`, cacheConfig);
+  Object.assign(pyramidConfig, cacheConfig || config);
+  if (!cacheConfig && !config.firstSalePrice && config.firstBuyPrice) {
     pyramidConfig.firstSalePrice = mathRound(config.firstBuyPrice * (1 + pyramidConfig.percentRate / 100), 3);
   }
   pyramidConfig.initTradeCount = Math.round(pyramidConfig.firstBuyAmt / pyramidConfig.firstBuyPrice / 100) * 100;
@@ -253,21 +260,25 @@ const refreshPyramidCalc = () => {
   pyramidConfig && showPyramidCalc(pyramidConfig);
 };
 
-const PyramidConfigCacheKey = 'PyramidConfigCache';
+const PyramidConfigCacheKey = 'pyramid_config_cache';
 const savePyramidConfig = () => {
-  localStorage.setItem(PyramidConfigCacheKey, JSON.stringify(pyramidConfig));
+  const existIndex = pyramidConfigList.value.findIndex((x) => x.market === pyramidConfig.market && x.code === pyramidConfig.code);
+  if (existIndex > -1) {
+    pyramidConfigList.value[existIndex] = { ...pyramidConfig };
+  } else {
+    pyramidConfigList.value = [...pyramidConfigList.value, { ...pyramidConfig }];
+  }
+  localStorage.setItem(PyramidConfigCacheKey, JSON.stringify(pyramidConfigList.value));
 };
 const initPyramidConfig = () => {
   const configStr = localStorage.getItem(PyramidConfigCacheKey);
   if (configStr) {
-    const config = JSON.parse(configStr);
-    Object.assign(pyramidConfig, config);
+    const configList = JSON.parse(configStr);
+    Object.assign(pyramidConfigList.value, configList);
+    Object.assign(pyramidConfig, pyramidConfigList.value[pyramidConfigList.value.length - 1]);
+    // console.log(`pyramidConfig : `, pyramidConfig);
   }
 };
-
-onMounted(() => {
-  initPyramidConfig();
-});
 
 function useGrid() {
   return {
