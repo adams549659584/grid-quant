@@ -21,7 +21,7 @@ const { calcRate, calcPercentRate } = usePredict();
         <span class="flex-1 text-center truncate">{{ `${row.code} ${row.name}` }}</span>
         <!-- <SvgIcon class="w-[2rem] h-[2rem] cursor-pointer" name="kline" /> -->
         <SvgIcon
-          class="w-[2rem] h-[2rem] cursor-pointer hidden md:block"
+          class="w-[2rem] h-[2rem] cursor-pointer"
           name="pyramid"
           @click="showPyramidCalc({ market: row.market, code: row.code, name: row.name, firstBuyPrice: row.nowPrice.closePrice })"
         />

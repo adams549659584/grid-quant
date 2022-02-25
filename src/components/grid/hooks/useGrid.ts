@@ -4,6 +4,7 @@ import { TitleComponentOption, ToolboxComponentOption, TooltipComponentOption } 
 import { FunnelSeriesOption } from 'echarts/charts';
 import { mathRound } from '@/helpers/StockHelper';
 import { ElMessage } from 'element-plus';
+import useStockHistory from '@/components/history/hooks/useStockHistory';
 
 type EChartsOption = echarts.ComposeOption<TitleComponentOption | ToolboxComponentOption | TooltipComponentOption | FunnelSeriesOption>;
 
@@ -158,6 +159,7 @@ const initPyramidCalc = (dom: HTMLElement) => {
   pyramidEchart.value.setOption(pyramidOption);
 };
 const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
+  const { isMobileScreen } = useStockHistory();
   Object.assign(pyramidConfig, config);
   if (!config.firstSalePrice && config.firstBuyPrice) {
     pyramidConfig.firstSalePrice = mathRound(config.firstBuyPrice * (1 + pyramidConfig.percentRate / 100), 3);
@@ -173,6 +175,7 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
   let totalSaleCount = 0;
   if (Array.isArray(pyramidOption.series)) {
     // 倒金字塔出货
+    pyramidOption.series[0].width = isMobileScreen ? '40%' : '70%';
     pyramidOption.series[0].data = [];
     for (let i = 1; i <= pyramidConfig.layerCount; i++) {
       const nowPrice = mathRound(pyramidConfig.firstSalePrice * (1 + (pyramidConfig.percentRate / 100) * (i - 1)), 3);
@@ -200,8 +203,10 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
       pyramidOption.series[0].data.push(data);
     }
     // 网格交易
-    (pyramidOption.series[1].data as any)[0].name = `${pyramidConfig.code} ${pyramidConfig.name} 网格交易`;
+    pyramidOption.series[1].width = isMobileScreen ? '12%' : '28%';
+    (pyramidOption.series[1].data as any)[0].name = isMobileScreen ? `${pyramidConfig.code}` : `${pyramidConfig.code} ${pyramidConfig.name} 网格交易`;
     // 金字塔建仓
+    pyramidOption.series[2].width = isMobileScreen ? '40%' : '70%';
     pyramidOption.series[2].data = [];
     for (let i = 1; i <= pyramidConfig.layerCount; i++) {
       const nowPrice = mathRound(pyramidConfig.firstBuyPrice * (1 - (pyramidConfig.percentRate / 100) * (i - 1)), 3);
@@ -238,7 +243,7 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
   if (pyramidEchart.value) {
     pyramidEchart.value.setOption(pyramidOption);
   }
-  console.log(`echart option : `, JSON.stringify(pyramidOption));
+  // console.log(`echart option : `, JSON.stringify(pyramidOption));
   isShowPyramidCalc.value = true;
 };
 const hidePyramidCalc = () => (isShowPyramidCalc.value = false);
