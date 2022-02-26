@@ -75,11 +75,11 @@ const quotePath = () => {
 /**
  * 获取股票信息API
  */
-export function getWSStockListApi(refeshtime: 2 | 5 | 10, secids: string[]) {
+export function getStockListApi(refeshtime: 2000 | 5000 | 100000, secids: string[]) {
   const count = secids.length;
   const postr = '&po=1';
   const pxstr = '';
-  const fields = ['f2', 'f12', 'f13', 'f14', 'f15', 'f16', 'f17', 'f18'];
+  const fields = ['f2', 'f12', 'f13', 'f14', 'f15', 'f16', 'f17'];
   return (
     quotePath() +
     'api/qt/ulist/sse?invt=3&pi=0&pz=' +

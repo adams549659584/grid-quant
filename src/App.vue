@@ -9,7 +9,6 @@ import NextPriceCard from './components/predict/NextPriceCard.vue';
 import MiniNextPriceCard from './components/predict/MiniNextPriceCard.vue';
 import StockDetail from './components/stockDetail/StockDetail.vue';
 import useStockDetail from './components/stockDetail/hooks/useStockDetail';
-import { getWSStockListApi } from './api/stock/stock-api';
 // import NextPriceTable from './components/predict/NextPriceTable.vue';
 
 const stockEvtSource = ref<EventSource>();
@@ -66,44 +65,55 @@ const defaultStocks = [
   '1.513300', // 纳斯达克ETF
   '1.510650' // 金融地产ETF
 ];
-const { isTradeTime, isShowNextSwitchChange, nextSwitch, nextPriceStyleList, nextPriceStyle, calcNext } = usePredict();
+const { isTradeTime, isShowNextSwitchChange, nextSwitch, nextPriceStyleList, nextPriceStyle, calcNext, getLastTradeDate, initStockEventSource, changeHistoryRowNext } = usePredict();
 let { historyRows, getHistory, rowFilters, rowSelectedFilter, rowSorts, rowSelectedSort } = useStockHistory();
 const { isShowStockDetail } = useStockDetail();
 
 const nextSwitchChange = async () => {
-  initNextPriceList();
+  // old
+  // initNextPriceList();
+  // new
+  changeHistoryRowNext();
 };
 
 const initNextPriceList = async () => {
-  if (historyRows.value && historyRows.value.length > 0) {
-    historyRows.value.forEach((row) => calcNext(`${row.market}.${row.code}`));
-  } else {
-    defaultStocks.forEach((secid) => calcNext(secid));
+  // old
+  // if (historyRows.value && historyRows.value.length > 0) {
+  //   historyRows.value.forEach((row) => calcNext(`${row.market}.${row.code}`));
+  // } else {
+  //   defaultStocks.forEach((secid) => calcNext(secid));
+  // }
+  // if (isTradeTime) {
+  //   if (nextPriceTimer.value) {
+  //     clearTimeout(nextPriceTimer.value);
+  //   }
+  //   nextPriceTimer.value = window.setTimeout(() => {
+  //     initNextPriceList();
+  //   }, nextPriceTimeout.value);
+  // }
+
+  // new
+  if (!historyRows.value || historyRows.value.length === 0) {
+    await Promise.allSettled(defaultStocks.map((secid) => calcNext(secid)));
   }
-  if (isTradeTime) {
-    if (nextPriceTimer.value) {
-      clearTimeout(nextPriceTimer.value);
+  if (!historyRows.value || historyRows.value.length === 0) {
+    return;
+  }
+  const lastTradeDate = await getLastTradeDate();
+  if (historyRows.value[0].nowPrice.dateStr !== lastTradeDate) {
+    await Promise.allSettled(historyRows.value.map((row) => calcNext(`${row.market}.${row.code}`)));
+  }
+  if (historyRows.value[0].nowPrice.dateStr === lastTradeDate && isTradeTime.value) {
+    if (stockEvtSource.value) {
+      stockEvtSource.value.close();
     }
-    nextPriceTimer.value = window.setTimeout(() => {
-      initNextPriceList();
-    }, nextPriceTimeout.value);
+    stockEvtSource.value = initStockEventSource();
   }
 };
 
 const init = () => {
   historyRows.value = getHistory();
   initNextPriceList();
-
-  // todo 改为服务器推送
-  const stockListApi = getWSStockListApi(
-    2,
-    historyRows.value.map((x) => `${x.market}.${x.code}`)
-  );
-  // stockEvtSource.value = new EventSource(stockListApi);
-  // stockEvtSource.value.onmessage = (ev: MessageEvent<{ data: string }>) => {
-  //   console.log(`stockEvtSource : `, ev.data);
-  //   // JSON.parse(ev.data)
-  // };
 };
 
 onMounted(() => {
@@ -124,10 +134,21 @@ onBeforeUnmount(() => {
   <div>
     <grid-header />
     <main class="min-h-[80vh]">
-      <header class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap">
-        <el-switch v-if="isShowNextSwitchChange" v-model="nextSwitch" inline-prompt active-text="预" inactive-text="回" @change="nextSwitchChange" />
+      <header
+        class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap"
+      >
+        <el-switch
+          v-if="isShowNextSwitchChange"
+          v-model="nextSwitch"
+          inline-prompt
+          active-text="预"
+          inactive-text="回"
+          @change="nextSwitchChange"
+        />
         <stock-search />
-        <div class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap mt-4 md:mt-0">
+        <div
+          class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap mt-4 md:mt-0"
+        >
           <el-select class="w-[6.5rem]" v-model="nextPriceStyle">
             <el-option v-for="item in nextPriceStyleList" :key="item" :label="item" :value="item"></el-option>
           </el-select>
