@@ -1,4 +1,5 @@
 import { jsonp } from '../base/http';
+import { IFundHoldDetailResult } from './model/IFundHoldDetailResult';
 import { IKLineResult, IKLineRow } from './model/IKLineResult';
 import { ISearchResult } from './model/ISearchResult';
 
@@ -93,4 +94,14 @@ export function getStockListApi(refeshtime: 2000 | 5000 | 100000, secids: string
     postr +
     pxstr
   );
+}
+
+/**
+ * 获取基金持仓明细
+ * @param fundCode 基金代码
+ */
+export async function getFundHoldDetail(fundCode: string) {
+  const url = `https://fundmobapi.eastmoney.com/FundMNewApi/FundMNInverstPosition?FCODE=${fundCode}&deviceid=Wap&plat=Wap&product=EFund&version=2.0.0&Uid=&_=${Date.now()}`;
+  const result = await jsonp<IFundHoldDetailResult>(url);
+  return result;
 }

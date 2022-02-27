@@ -4,10 +4,12 @@ import SvgIcon from '../icons/SvgIcon.vue';
 import GridFundsCalc from '../grid/GridFundsCalc.vue';
 import useGrid from '../grid/hooks/useGrid';
 import usePredict from './hooks/usePredict';
+import useStockDetail from '../stockDetail/hooks/useStockDetail';
 
 const { filterHistoryRows, historyFillRowCount, delHistory } = useStockHistory();
 const { isShowPyramidCalc, showPyramidCalc } = useGrid();
 const { calcRate, calcPercentRate } = usePredict();
+const { showStockDetail } = useStockDetail();
 </script>
 
 <template>
@@ -18,7 +20,7 @@ const { calcRate, calcPercentRate } = usePredict();
         <svg-icon v-if="row.nowPrice.closePrice >= row.nextPrice.firstSalePrice" name="sale" color="#d81e06" />
       </div>
       <div class="row p-2 space-x-1">
-        <span class="flex-1 text-center truncate">{{ `${row.code} ${row.name}` }}</span>
+        <span class="flex-1 text-center truncate cursor-pointer" @click="showStockDetail(row)">{{ `${row.code} ${row.name}` }}</span>
         <!-- <SvgIcon class="w-[2rem] h-[2rem] cursor-pointer" name="kline" /> -->
         <SvgIcon
           class="w-[2rem] h-[2rem] cursor-pointer"

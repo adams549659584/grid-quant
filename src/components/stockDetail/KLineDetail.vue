@@ -1,18 +1,20 @@
 <script setup lang="ts">
+import { onMounted, onUnmounted, ref } from 'vue';
 import * as echarts from 'echarts';
-import { onMounted, ref } from 'vue';
-import useStockKLine from './hooks/useStockKLine';
+
+const props = withDefaults(defineProps<{ klineType: string }>(), {
+  klineType: '分时'
+});
 
 const klineChartsRef = ref<HTMLElement>();
-const { isShowStockKLine } = useStockKLine(0, '000001');
+const klineECharts = ref<echarts.ECharts>();
 
 onMounted(() => {
+  console.log(`onMounted : `, klineChartsRef.value);
   if (klineChartsRef.value) {
-    // const klineChart = echarts.init(klineChartsRef.value);
-    type EChartsOption = echarts.EChartsOption;
-
-    var myChart = echarts.init(klineChartsRef.value);
-    var option: EChartsOption;
+    if (!klineECharts.value) {
+      klineECharts.value = echarts.init(klineChartsRef.value);
+    }
 
     const upColor = '#ec0000';
     const upBorderColor = '#8A0000';
@@ -140,7 +142,7 @@ onMounted(() => {
       return result;
     }
 
-    option = {
+    const option: echarts.EChartsOption = {
       tooltip: {
         trigger: 'axis',
         axisPointer: {
@@ -318,24 +320,21 @@ onMounted(() => {
       ]
     };
 
-    option && myChart.setOption(option);
+    option && klineECharts.value.setOption(option);
+    // echarts.getInstanceByDom(klineChartsRef.value)?.resize();
   }
 });
+
+onUnmounted(() => {
+  console.log(`onUnmounted : `);
+  if (klineECharts.value) {
+    klineECharts.value.clear();
+  }
+})
 </script>
 
 <template>
-  <div
-    class="absolute w-full h-full px-1 md:px-6 py-40 z-10 box-border top-0 left-0 bg-black/70 cursor-not-allowed overflow-hidden"
-    @touchmove.prevent
-    @mousewheel.prevent
-  >
-    <div
-      class="w-full md:w-[50rem] bg-white rounded-md mx-auto text-center leading-none z-20 relative"
-    >
-      <h5 class="p-2">测试测试(1.000001)</h5>
-      <div class="w-full h-96" ref="klineChartsRef"></div>
-    </div>
-  </div>
+  <div ref="klineChartsRef"></div>
 </template>
 
 <style lang="scss" scoped></style>
