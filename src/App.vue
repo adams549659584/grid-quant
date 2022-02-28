@@ -11,7 +11,6 @@ import StockDetail from './components/stockDetail/StockDetail.vue';
 import useStockDetail from './components/stockDetail/hooks/useStockDetail';
 // import NextPriceTable from './components/predict/NextPriceTable.vue';
 
-const stockEvtSource = ref<EventSource>();
 const nextPriceTimer = ref(0);
 const nextPriceTimeout = ref(1000 * 10);
 const defaultStocks = [
@@ -65,7 +64,18 @@ const defaultStocks = [
   '1.513300', // 纳斯达克ETF
   '1.510650' // 金融地产ETF
 ];
-const { isTradeTime, isShowNextSwitchChange, nextSwitch, nextPriceStyleList, nextPriceStyle, calcNext, getLastTradeDate, initStockEventSource, changeHistoryRowNext } = usePredict();
+const {
+  isTradeTime,
+  isShowNextSwitchChange,
+  nextSwitch,
+  nextPriceStyleList,
+  nextPriceStyle,
+  calcNext,
+  getLastTradeDate,
+  stockEvtSource,
+  initStockEventSource,
+  changeHistoryRowNext
+} = usePredict();
 let { historyRows, getHistory, rowFilters, rowSelectedFilter, rowSorts, rowSelectedSort } = useStockHistory();
 const { isShowStockDetail } = useStockDetail();
 
@@ -104,10 +114,7 @@ const initNextPriceList = async () => {
     await Promise.allSettled(historyRows.value.map((row) => calcNext(`${row.market}.${row.code}`)));
   }
   if (historyRows.value[0].nowPrice.dateStr === lastTradeDate && isTradeTime.value) {
-    if (stockEvtSource.value) {
-      stockEvtSource.value.close();
-    }
-    stockEvtSource.value = initStockEventSource();
+    initStockEventSource();
   }
 };
 
@@ -134,21 +141,10 @@ onBeforeUnmount(() => {
   <div>
     <grid-header />
     <main class="min-h-[80vh]">
-      <header
-        class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap"
-      >
-        <el-switch
-          v-if="isShowNextSwitchChange"
-          v-model="nextSwitch"
-          inline-prompt
-          active-text="预"
-          inactive-text="回"
-          @change="nextSwitchChange"
-        />
+      <header class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap">
+        <el-switch v-if="isShowNextSwitchChange" v-model="nextSwitch" inline-prompt active-text="预" inactive-text="回" @change="nextSwitchChange" />
         <stock-search />
-        <div
-          class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap mt-4 md:mt-0"
-        >
+        <div class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap mt-4 md:mt-0">
           <el-select class="w-[6.5rem]" v-model="nextPriceStyle">
             <el-option v-for="item in nextPriceStyleList" :key="item" :label="item" :value="item"></el-option>
           </el-select>

@@ -51,7 +51,10 @@ export default function useStockSearch() {
     searchKeyword.value = '';
     secid.value = `${val.MktNum}.${val.Code}`;
     const { calcNext } = usePredict();
-    return calcNext(secid.value, true);
+    return calcNext(secid.value, true).then((res) => {
+      const { initStockEventSource } = usePredict();
+      initStockEventSource();
+    });
   };
 
   return {

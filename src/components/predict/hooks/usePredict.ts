@@ -9,6 +9,7 @@ import { computed, ref } from 'vue';
 const dateNowHM = Number(formatNow('Hmm'));
 const isTradeTime = ref(dateNowHM >= 920 && dateNowHM < 1500);
 const isShowNextSwitchChange = computed(() => !isTradeTime.value);
+const stockEvtSource = ref<EventSource>();
 
 // 预测/回看当天
 const nextSwitch = ref(true);
@@ -83,7 +84,6 @@ export default function usePredict() {
   const changeHistoryRowNext = () => {
     const { historyRows, updateHistory } = useStockHistory();
     if (historyRows.value && historyRows.value.length > 0) {
-      const dateNowStr = formatNow('yyyy-MM-dd');
       historyRows.value = historyRows.value.map((row) => {
         return {
           ...row,
@@ -102,8 +102,9 @@ export default function usePredict() {
         2000,
         historyRows.value.map((x) => `${x.market}.${x.code}`)
       );
-      const stockEvtSource = new EventSource(stockListApi);
-      stockEvtSource.onmessage = (ev: MessageEvent<string>) => {
+      stockEvtSource.value && stockEvtSource.value.close();
+      stockEvtSource.value = new EventSource(stockListApi);
+      stockEvtSource.value.onmessage = (ev: MessageEvent<string>) => {
         const stockListResult = JSON.parse(ev.data) as IStockListResult;
         if (stockListResult.data && stockListResult.data.diff) {
           Object.values(stockListResult.data.diff).forEach((x) => {
@@ -127,12 +128,10 @@ export default function usePredict() {
           });
         } else {
           isTradeTime.value = false;
-          stockEvtSource.close();
+          stockEvtSource.value && stockEvtSource.value.close();
         }
       };
-      return stockEvtSource;
     }
-    return;
   };
   return {
     isTradeTime,
@@ -144,6 +143,7 @@ export default function usePredict() {
     calcRate,
     calcPercentRate,
     getLastTradeDate,
+    stockEvtSource,
     initStockEventSource,
     changeHistoryRowNext
   };
