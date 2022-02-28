@@ -126,10 +126,11 @@ export default function usePredict() {
               updateHistory(existRow);
             }
           });
-        } else {
-          isTradeTime.value = false;
-          stockEvtSource.value && stockEvtSource.value.close();
-        }
+        } 
+        // else {
+        //   isTradeTime.value = false;
+        //   stockEvtSource.value && stockEvtSource.value.close();
+        // }
       };
     }
   };
