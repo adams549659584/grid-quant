@@ -109,10 +109,18 @@ export default function usePredict() {
           Object.values(stockListResult.data.diff).forEach((x) => {
             const existRow = historyRows.value?.find((row) => row.market === x.f13 && row.code === x.f12);
             if (existRow) {
-              existRow.nowPrice.closePrice = mathRound(x.f2 / 1000, 3);
-              existRow.nowPrice.highPrice = mathRound(x.f15 / 1000, 3);
-              existRow.nowPrice.lowPrice = mathRound(x.f16 / 1000, 3);
-              existRow.nowPrice.openPrice = mathRound(x.f17 / 1000, 3);
+              if (x.f2) {
+                existRow.nowPrice.closePrice = mathRound(x.f2 / 1000, 3);
+              }
+              if (x.f15) {
+                existRow.nowPrice.highPrice = mathRound(x.f15 / 1000, 3);
+              }
+              if (x.f16) {
+                existRow.nowPrice.lowPrice = mathRound(x.f16 / 1000, 3);
+              }
+              if (x.f17) {
+                existRow.nowPrice.openPrice = mathRound(x.f17 / 1000, 3);
+              }
               updateHistory(existRow);
             }
           });

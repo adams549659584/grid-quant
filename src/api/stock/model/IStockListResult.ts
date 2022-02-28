@@ -11,7 +11,7 @@ export interface IStockListResult {
         /**
          * 最新价
          */
-        f2: number;
+        f2?: number;
         /**
          * 代码
          */
@@ -27,15 +27,15 @@ export interface IStockListResult {
         /**
          * 最高价
          */
-        f15: number;
+        f15?: number;
         /**
          * 最低价
          */
-        f16: number;
+        f16?: number;
         /**
          * 开盘价
          */
-        f17: number;
+        f17?: number;
       };
     };
   };
