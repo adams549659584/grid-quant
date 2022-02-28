@@ -9,6 +9,10 @@ export interface IStockListResult {
     diff: {
       [key in string]: {
         /**
+         * 精度
+         */
+        f1?: number;
+        /**
          * 最新价
          */
         f2?: number;

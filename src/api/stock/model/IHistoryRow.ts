@@ -6,6 +6,10 @@ export interface IHistoryRow {
   code: string;
   name: string;
   /**
+   * 精度 2-分 3-厘
+   */
+  precision?: number;
+  /**
    * 上次价格
    */
   prevPrice: IKLineRow;
