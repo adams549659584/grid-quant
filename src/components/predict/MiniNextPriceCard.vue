@@ -18,20 +18,20 @@ const { calcPercentRate } = usePredict();
         <el-popover placement="top-start" trigger="hover">
           <template #reference>
             <span :class="{ 'text-red-500': row.nowPrice.closePrice > row.prevPrice.closePrice, 'text-green-500': row.nowPrice.closePrice < row.prevPrice.closePrice }"
-              >{{ row.nowPrice.closePrice.toFixed(3) }}({{ ((row.nowPrice.closePrice / row.prevPrice.closePrice - 1) * 100).toFixed(2) }}%)</span
+              >{{ row.nowPrice.closePrice.toFixed(row.precision || 3) }}({{ ((row.nowPrice.closePrice / row.prevPrice.closePrice - 1) * 100).toFixed(2) }}%)</span
             >
           </template>
           <div>
-            <p class="p-1">高：{{ row.nowPrice.highPrice.toFixed(3) }}</p>
-            <p class="p-1">低：{{ row.nowPrice.lowPrice.toFixed(3) }}</p>
-            <p class="p-1">开：{{ row.nowPrice.openPrice.toFixed(3) }}</p>
+            <p class="p-1">高：{{ row.nowPrice.highPrice.toFixed(row.precision || 3) }}</p>
+            <p class="p-1">低：{{ row.nowPrice.lowPrice.toFixed(row.precision || 3) }}</p>
+            <p class="p-1">开：{{ row.nowPrice.openPrice.toFixed(row.precision || 3) }}</p>
           </div>
         </el-popover>
       </div>
-      <div class="row bg-red-400">{{ row.nextPrice.highSalePrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.highSalePrice) }})</div>
-      <div class="row bg-red-300">{{ row.nextPrice.firstSalePrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.firstSalePrice) }})</div>
-      <div class="row bg-green-300">{{ row.nextPrice.firstBuyPrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.firstBuyPrice) }})</div>
-      <div class="row bg-green-400">{{ row.nextPrice.lowBuyPrice.toFixed(3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.lowBuyPrice) }})</div>
+      <div class="row bg-red-400">{{ row.nextPrice.highSalePrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.highSalePrice) }})</div>
+      <div class="row bg-red-300">{{ row.nextPrice.firstSalePrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.firstSalePrice) }})</div>
+      <div class="row bg-green-300">{{ row.nextPrice.firstBuyPrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.firstBuyPrice) }})</div>
+      <div class="row bg-green-400">{{ row.nextPrice.lowBuyPrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.lowBuyPrice) }})</div>
     </div>
     <div class="next-price-box invisible" v-for="i in historyFillRowCount" :key="i"></div>
   </div>
