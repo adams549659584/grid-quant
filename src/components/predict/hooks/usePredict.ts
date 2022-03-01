@@ -123,10 +123,13 @@ export default function usePredict() {
               if (x.f17) {
                 existRow.nowPrice.openPrice = mathRound(x.f17 / Math.pow(10, existRow.precision), existRow.precision);
               }
+              existRow.nextPrice = nextSwitch.value
+                ? calcNextPrice(existRow.nowPrice.closePrice, existRow.nowPrice.highPrice, existRow.nowPrice.lowPrice)
+                : calcNextPrice(existRow.prevPrice.closePrice, existRow.prevPrice.highPrice, existRow.prevPrice.lowPrice);
               updateHistory(existRow);
             }
           });
-        } 
+        }
         // else {
         //   isTradeTime.value = false;
         //   stockEvtSource.value && stockEvtSource.value.close();

@@ -12,7 +12,6 @@ import useStockDetail from './components/stockDetail/hooks/useStockDetail';
 // import NextPriceTable from './components/predict/NextPriceTable.vue';
 
 const nextPriceTimer = ref(0);
-const nextPriceTimeout = ref(1000 * 10);
 const defaultStocks = [
   '1.510050', // 上证50ETF
   '0.159602', // 中国A50ETF
@@ -80,29 +79,10 @@ let { historyRows, getHistory, rowFilters, rowSelectedFilter, rowSorts, rowSelec
 const { isShowStockDetail } = useStockDetail();
 
 const nextSwitchChange = async () => {
-  // old
-  // initNextPriceList();
-  // new
   changeHistoryRowNext();
 };
 
 const initNextPriceList = async () => {
-  // old
-  // if (historyRows.value && historyRows.value.length > 0) {
-  //   historyRows.value.forEach((row) => calcNext(`${row.market}.${row.code}`));
-  // } else {
-  //   defaultStocks.forEach((secid) => calcNext(secid));
-  // }
-  // if (isTradeTime) {
-  //   if (nextPriceTimer.value) {
-  //     clearTimeout(nextPriceTimer.value);
-  //   }
-  //   nextPriceTimer.value = window.setTimeout(() => {
-  //     initNextPriceList();
-  //   }, nextPriceTimeout.value);
-  // }
-
-  // new
   if (!historyRows.value || historyRows.value.length === 0) {
     await Promise.allSettled(defaultStocks.map((secid) => calcNext(secid)));
   }
@@ -115,6 +95,8 @@ const initNextPriceList = async () => {
   }
   if (historyRows.value[0].nowPrice.dateStr === lastTradeDate && isTradeTime.value) {
     initStockEventSource();
+  } else {
+    changeHistoryRowNext();
   }
 };
 
