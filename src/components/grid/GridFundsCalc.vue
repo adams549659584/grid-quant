@@ -53,13 +53,23 @@ onMounted(() => {
         <el-input-number v-model="pyramidConfig.initTradeCount" :precision="0" :min="100" :step="100" />
       </el-form-item>
       <el-form-item label="建仓价格">
-        <el-input-number v-model="pyramidConfig.firstBuyPrice" :precision="3" :min="0.001" :step="0.001" />
+        <el-input-number
+          v-model="pyramidConfig.firstBuyPrice"
+          :precision="pyramidConfig.precision"
+          :min="1 / Math.pow(10, pyramidConfig.precision)"
+          :step="1 / Math.pow(10, pyramidConfig.precision)"
+        />
       </el-form-item>
       <el-form-item label="建仓金额">
         <el-input class="w-[90%]" disabled :model-value="(pyramidConfig.firstBuyPrice * pyramidConfig.initTradeCount).toFixed(2)" />
       </el-form-item>
       <el-form-item label="出货价格">
-        <el-input-number v-model="pyramidConfig.firstSalePrice" :precision="3" :min="0.001" :step="0.001" />
+        <el-input-number
+          v-model="pyramidConfig.firstSalePrice"
+          :precision="pyramidConfig.precision"
+          :min="1 / Math.pow(10, pyramidConfig.precision)"
+          :step="1 / Math.pow(10, pyramidConfig.precision)"
+        />
       </el-form-item>
       <el-form-item label="出货金额">
         <el-input class="w-[90%]" disabled :model-value="(pyramidConfig.firstSalePrice * pyramidConfig.initTradeCount).toFixed(2)" />

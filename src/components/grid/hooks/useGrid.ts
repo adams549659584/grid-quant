@@ -104,6 +104,10 @@ export interface IPyramidConfig {
    */
   name: string;
   /**
+   * 精度
+   */
+  precision: number;
+  /**
    * 金字塔出货价格
    */
   firstSalePrice: number;
@@ -144,6 +148,7 @@ const pyramidConfig = reactive<IPyramidConfig>({
   market: 1,
   code: '000001',
   name: '上证指数',
+  precision: 3,
   firstBuyPrice: 0,
   firstBuyAmt: 2000,
   firstSalePrice: 0,
@@ -190,14 +195,14 @@ const handlePyramidConfig = () => {
     pyramidOption.series[0].width = isMobileScreen ? '40%' : '70%';
     pyramidOption.series[0].data = [];
     for (let i = 1; i <= pyramidConfig.layerCount; i++) {
-      const nowPrice = mathRound(pyramidConfig.firstSalePrice * (1 + (pyramidConfig.percentRate / 100) * (i - 1)), 3);
+      const nowPrice = mathRound(pyramidConfig.firstSalePrice * (1 + (pyramidConfig.percentRate / 100) * (i - 1)), pyramidConfig.precision);
       const nowTradeCount = pyramidConfig.initTradeCount * i;
       const usedAmt = mathRound(nowPrice * nowTradeCount, 2);
       const nowTotalSaleAmt = (totalSaleAmt += usedAmt);
       const nowTotalSaleCount = (totalSaleCount += nowTradeCount);
       const data = {
         value: i,
-        name: `${nowPrice.toFixed(3)} × ${nowTradeCount}`,
+        name: `${nowPrice.toFixed(pyramidConfig.precision)} × ${nowTradeCount}`,
         label: {
           color: 'red'
         },
@@ -228,7 +233,7 @@ const handlePyramidConfig = () => {
       const nowTotalBuyCount = (totalBuyCount += nowTradeCount);
       const data = {
         value: i,
-        name: `${nowPrice.toFixed(3)} × ${nowTradeCount}`,
+        name: `${nowPrice.toFixed(pyramidConfig.precision)} × ${nowTradeCount}`,
         label: {
           color: 'green'
         },
@@ -236,7 +241,7 @@ const handlePyramidConfig = () => {
           formatter: () => {
             return `
             <p class="text-left">${i}层建仓：￥${usedAmt.toFixed(2)}</p>
-            <p class="text-left">持仓成本：￥${mathRound(nowTotalBuyAmt / nowTotalBuyCount, 3).toFixed(3)}</p>
+            <p class="text-left">持仓成本：￥${mathRound(nowTotalBuyAmt / nowTotalBuyCount, pyramidConfig.precision).toFixed(pyramidConfig.precision)}</p>
             <p class="text-left">总跌幅：${(pyramidConfig.percentRate * (i - 1)).toFixed(2)}%</p>
             <p class="text-left">总投入：￥${nowTotalBuyAmt.toFixed(2)}</p>
             `;

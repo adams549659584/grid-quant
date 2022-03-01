@@ -25,7 +25,7 @@ const { showStockDetail } = useStockDetail();
         <SvgIcon
           class="w-[2rem] h-[2rem] cursor-pointer"
           name="pyramid"
-          @click="showPyramidCalc({ market: row.market, code: row.code, name: row.name, firstBuyPrice: row.nowPrice.closePrice })"
+          @click="showPyramidCalc({ market: row.market, code: row.code, name: row.name, precision: row.precision, firstBuyPrice: row.nowPrice.closePrice })"
         />
         <!-- <SvgIcon
           class="w-[2rem] h-[2rem] cursor-pointer"
@@ -42,7 +42,9 @@ const { showStockDetail } = useStockDetail();
           :class="{ 'text-red-500': row.nowPrice.closePrice > row.prevPrice.closePrice, 'text-green-500': row.nowPrice.closePrice < row.prevPrice.closePrice }"
         >
           <el-popover placement="top-start" trigger="hover">
-            <template #reference>{{ row.nowPrice.closePrice.toFixed(row.precision || 3) }}({{ ((row.nowPrice.closePrice / row.prevPrice.closePrice - 1) * 100).toFixed(2) }}%)</template>
+            <template #reference
+              >{{ row.nowPrice.closePrice.toFixed(row.precision || 3) }}({{ ((row.nowPrice.closePrice / row.prevPrice.closePrice - 1) * 100).toFixed(2) }}%)</template
+            >
             <div>
               <p class="p-1">高：{{ row.nowPrice.highPrice.toFixed(row.precision || 3) }}</p>
               <p class="p-1">低：{{ row.nowPrice.lowPrice.toFixed(row.precision || 3) }}</p>
