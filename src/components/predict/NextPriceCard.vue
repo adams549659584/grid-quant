@@ -49,6 +49,7 @@ const { showStockDetail } = useStockDetail();
               <p class="p-1">高：{{ row.nowPrice.highPrice.toFixed(row.precision || 3) }}</p>
               <p class="p-1">低：{{ row.nowPrice.lowPrice.toFixed(row.precision || 3) }}</p>
               <p class="p-1">开：{{ row.nowPrice.openPrice.toFixed(row.precision || 3) }}</p>
+              <p class="p-1">昨：{{ row.prevPrice.closePrice.toFixed(row.precision || 3) }}</p>
             </div>
           </el-popover>
         </div>
