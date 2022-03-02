@@ -2,6 +2,7 @@ import { jsonp } from '../base/http';
 import { IFundHoldDetailResult } from './model/IFundHoldDetailResult';
 import { IKLineResult, IKLineRow } from './model/IKLineResult';
 import { ISearchResult } from './model/ISearchResult';
+import { IStockTrendsResult } from './model/IStockTrendsResult';
 
 /**
  * 搜索股票基金
@@ -103,5 +104,19 @@ export function getStockListApi(refeshtime: 2000 | 5000 | 100000, secids: string
 export async function getFundHoldDetail(fundCode: string) {
   const url = `https://fundmobapi.eastmoney.com/FundMNewApi/FundMNInverstPosition?FCODE=${fundCode}&deviceid=Wap&plat=Wap&product=EFund&version=2.0.0&Uid=&_=${Date.now()}`;
   const result = await jsonp<IFundHoldDetailResult>(url);
+  return result;
+}
+
+/**
+ * 获取股票基金行情
+ * @param secid 股票基金编码
+ * @returns
+ */
+export async function getTrends(secid: string) {
+  const url = `https://push2.eastmoney.com/api/qt/stock/trends2/get?secid=${secid}&fields1=f1,f2,f3,f4,f5,f6,f7,f8,f9,f10,f11,f12,f13&fields2=f51,f53,f56,f58&iscr=0&iscca=0&ndays=1`;
+  const result = await jsonp<IStockTrendsResult>(url);
+  if (result && result.data && result.data.trends && result.data.trends.length > 0) {
+    result.data.trendArrays = result.data.trends.map((x) => x.split(','));
+  }
   return result;
 }

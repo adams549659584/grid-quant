@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { IFundStock } from '@/api/stock/model/IFundHoldDetailResult';
+import { getFundHoldDetail } from '@/api/stock/stock-api';
 import { ElMessage } from 'element-plus';
 import { onMounted, ref } from 'vue';
 import SvgIcon from '../icons/SvgIcon.vue';
@@ -23,18 +24,16 @@ const tabClick = async () => {
   //     fundHoldDetails.value = fundHoldDetailResult.Datas.fundStocks;
   //     fundHoldDetailLastUpdateTime.value = fundHoldDetailResult.Expansion;
   //   }
-  // } 
+  // }
   if (stockActiveTab.value === lastStockActiveTab.value) {
     console.log(`已打开 : `, lastStockActiveTab.value);
-
   } else {
     lastStockActiveTab.value = stockActiveTab.value;
     console.log(`切换 ： `, stockActiveTab.value);
   }
-}
+};
 
-onMounted(() => {
-});
+onMounted(() => {});
 </script>
 
 <template>
@@ -43,27 +42,12 @@ onMounted(() => {
     @touchmove.prevent
     @mousewheel.prevent
   >
-    <div
-      class="w-full p-[0.5rem] md:w-[50rem] bg-white rounded-md mx-auto text-center leading-none z-20 relative"
-    >
-      <SvgIcon
-        class="w-[2rem] h-[2rem] absolute top-[0.1rem] right-[0.4rem] cursor-pointer z-3"
-        name="close"
-        color="#999"
-        @click="closeStockDetail"
-      />
+    <div class="w-full p-[0.5rem] md:w-[50rem] bg-white rounded-md mx-auto text-center leading-none z-20 relative">
+      <SvgIcon class="w-[2rem] h-[2rem] absolute top-[0.1rem] right-[0.4rem] cursor-pointer z-3" name="close" color="#999" @click="closeStockDetail" />
       <div class="w-full">
-        <h1
-          class="p-2 pb-4"
-          v-if="stockActiveInfo"
-        >{{ `${stockActiveInfo.code} ${stockActiveInfo.name}` }}</h1>
+        <h1 class="p-2 pb-4" v-if="stockActiveInfo">{{ `${stockActiveInfo.code} ${stockActiveInfo.name}` }}</h1>
         <main>
-          <el-tabs
-            type="border-card"
-            v-model="stockActiveTab"
-            class="demo-tabs"
-            @tab-click="tabClick"
-          >
+          <el-tabs type="border-card" v-model="stockActiveTab" class="demo-tabs" @tab-click="tabClick">
             <el-tab-pane v-for="item in klineTypes" :label="item" :name="item" lazy>
               <!-- <div v-if="item === '持仓明细'">
                 <div v-if="fundHoldDetails && fundHoldDetails.length > 0">
@@ -75,7 +59,7 @@ onMounted(() => {
                     <el-table-column prop="PCTNVCHG" label="较上期" />
                   </el-table>
                 </div>
-              </div>-->
+              </div> -->
               <KLineDetail class="w-full h-96" />
             </el-tab-pane>
           </el-tabs>
