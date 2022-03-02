@@ -71,7 +71,7 @@ const { showStockDetail } = useStockDetail();
         <div class="column">{{ row.nextPrice.lowBuyPrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.prevPrice.closePrice, row.nextPrice.lowBuyPrice) }})</div>
       </div>
       <div class="row">
-        <div class="column">振幅</div>
+        <div class="column">预估振幅</div>
         <div class="column">
           {{ ((calcRate(row.prevPrice.closePrice, row.nextPrice.firstSalePrice) - calcRate(row.prevPrice.closePrice, row.nextPrice.firstBuyPrice)) * 100).toFixed(2) }}% -
           {{ ((calcRate(row.prevPrice.closePrice, row.nextPrice.highSalePrice) - calcRate(row.prevPrice.closePrice, row.nextPrice.lowBuyPrice)) * 100).toFixed(2) }}%
