@@ -10,6 +10,9 @@ const dateNowHM = Number(formatNow('Hmm'));
 const isTradeTime = ref(dateNowHM >= 920 && dateNowHM < 1500);
 const isShowNextSwitchChange = computed(() => !isTradeTime.value);
 const stockEvtSource = ref<EventSource>();
+const todayStr = formatNow('yyyy-MM-dd');
+const lastTradeDate = ref(todayStr);
+const isTradeDate = computed(() => lastTradeDate.value === todayStr);
 
 // 预测/回看当天
 const nextSwitch = ref(true);
@@ -41,16 +44,18 @@ const calcPercentRate = (prevClosePrice: number, nowPrice: number) => {
 const getLastTradeDate = async () => {
   const lastTradeDateCacheKey = 'last_trade_date';
   const cacheLastQueryTradeDate = localStorage.getItem(lastTradeDateCacheKey);
-  const todayStr = formatNow('yyyy-MM-dd');
   if (cacheLastQueryTradeDate === todayStr) {
+    lastTradeDate.value = todayStr;
     return todayStr;
   }
   const kline = await getKLineD1('1.000001', 1);
   if (kline && kline.data && kline.data.klineDatas && kline.data.klineDatas.length === 1) {
     const tradeDateStr = kline.data.klineDatas[0].dateStr;
     localStorage.setItem(lastTradeDateCacheKey, tradeDateStr);
+    lastTradeDate.value = tradeDateStr;
     return tradeDateStr;
   }
+  lastTradeDate.value = todayStr;
   return todayStr;
 };
 
@@ -63,7 +68,7 @@ export default function usePredict() {
       const klineDatas = klineD1.data.klineDatas;
       const dateNowStr = formatNow('yyyy-MM-dd');
       // 当日收盘前
-      const klineData = !nextSwitch.value || (klineDatas[1].dateStr === dateNowStr && new Date().getHours() < 15) ? klineDatas[0] : klineDatas[1];
+      const klineData = nextSwitch.value || !isTradeDate || !isTradeTime ? klineDatas[1] : klineDatas[0];
       const nextPrice = calcNextPrice(klineData.closePrice, klineData.highPrice, klineData.lowPrice);
       updateHistory(
         {
@@ -89,7 +94,7 @@ export default function usePredict() {
         return {
           ...row,
           nextPrice:
-            nextSwitch.value && nowHour >= 15
+            nextSwitch.value || !isTradeDate || !isTradeTime
               ? calcNextPrice(row.nowPrice.closePrice, row.nowPrice.highPrice, row.nowPrice.lowPrice)
               : calcNextPrice(row.prevPrice.closePrice, row.prevPrice.highPrice, row.prevPrice.lowPrice)
         };
@@ -109,7 +114,6 @@ export default function usePredict() {
       stockEvtSource.value.onmessage = (ev: MessageEvent<string>) => {
         const stockListResult = JSON.parse(ev.data) as IStockListResult;
         if (stockListResult.data && stockListResult.data.diff) {
-          const nowHour = new Date().getHours();
           Object.values(stockListResult.data.diff).forEach((x) => {
             const existRow = historyRows.value?.find((row) => row.market === x.f13 && row.code === x.f12);
             if (existRow) {
@@ -127,7 +131,7 @@ export default function usePredict() {
                 existRow.nowPrice.openPrice = mathRound(x.f17 / Math.pow(10, existRow.precision), existRow.precision);
               }
               existRow.nextPrice =
-                nextSwitch.value && nowHour >= 15
+                nextSwitch.value || !isTradeDate || !isTradeTime
                   ? calcNextPrice(existRow.nowPrice.closePrice, existRow.nowPrice.highPrice, existRow.nowPrice.lowPrice)
                   : calcNextPrice(existRow.prevPrice.closePrice, existRow.prevPrice.highPrice, existRow.prevPrice.lowPrice);
               updateHistory(existRow);
@@ -142,6 +146,7 @@ export default function usePredict() {
     }
   };
   return {
+    isTradeDate,
     isTradeTime,
     isShowNextSwitchChange,
     nextSwitch,
