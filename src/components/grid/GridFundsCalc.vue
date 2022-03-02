@@ -50,7 +50,7 @@ onMounted(() => {
         <span class="ml-1">%</span>
       </el-form-item>
       <el-form-item label="单笔份额">
-        <el-input-number v-model="pyramidConfig.initTradeCount" :precision="0" :min="100" :step="100" />
+        <el-input-number v-model="pyramidConfig.initTradeCount" :precision="0" :min="pyramidConfig.mixTradeCount" :step="pyramidConfig.mixTradeCount" />
       </el-form-item>
       <el-form-item label="建仓价格">
         <el-input-number

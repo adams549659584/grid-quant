@@ -136,6 +136,10 @@ export interface IPyramidConfig {
    */
   layerCount: number;
   /**
+   * 最小交易数量
+   */
+  mixTradeCount: number;
+  /**
    * 金字塔交易数量
    */
   initTradeCount: number;
@@ -156,6 +160,7 @@ const pyramidConfig = reactive<IPyramidConfig>({
   // rate: 0.02,
   percentRate: 2,
   layerCount: 10,
+  mixTradeCount: 100,
   initTradeCount: 100
 });
 // 金字塔配置缓存
@@ -172,18 +177,19 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
   const cacheConfig = pyramidConfigList.value.find((x) => x.market === config.market && x.code === config.code);
   // console.log(`showPyramidCalc showPyramidCalc :`, cacheConfig);
   Object.assign(pyramidConfig, cacheConfig || config);
+  pyramidConfig.mixTradeCount = pyramidConfig.name.endsWith('转债') ? 10 : 100;
   if (!cacheConfig && !config.firstSalePrice && config.firstBuyPrice) {
     pyramidConfig.firstSalePrice = mathRound(config.firstBuyPrice * (1 + pyramidConfig.percentRate / 100), 3);
   }
-  pyramidConfig.initTradeCount = Math.round(pyramidConfig.firstBuyAmt / pyramidConfig.firstBuyPrice / 100) * 100;
+  pyramidConfig.initTradeCount = Math.round(pyramidConfig.firstBuyAmt / pyramidConfig.firstBuyPrice / pyramidConfig.mixTradeCount) * pyramidConfig.mixTradeCount;
   handlePyramidConfig();
   // console.log(`echart option : `, JSON.stringify(pyramidOption));
   isShowPyramidCalc.value = true;
 };
 const handlePyramidConfig = () => {
   if (pyramidConfig.initTradeCount === 0) {
-    ElMessage.warning(`单手金额超出最低建仓金额￥${pyramidConfig.firstBuyAmt.toFixed()}，默认设为1手`);
-    pyramidConfig.initTradeCount = 100;
+    ElMessage.warning(`单手金额超出最低建仓金额￥${pyramidConfig.firstBuyAmt.toFixed()}，默认设为${pyramidConfig.mixTradeCount}股`);
+    pyramidConfig.initTradeCount = pyramidConfig.mixTradeCount;
   }
   let totalBuyAmt = 0;
   let totalBuyCount = 0;
