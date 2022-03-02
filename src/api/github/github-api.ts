@@ -1,12 +1,9 @@
 import { queryStringify } from '@/helpers/UrlHelper';
+import { IAccessTokenResult } from './model/IAccessTokenResult';
 
-// ### Client ID
-// > a49f39a4ff0992e4a4e1
-// ### Client secrets
-// > ec0a698bc1d4f5671956902ebd6b602fbddf5876
-
-export async function fetchGithub(url: string, accessToken: string) {
+export async function fetchGithub(url: string, accessToken: string, method: 'GET' | 'POST' = 'GET') {
   return fetch(url, {
+    method,
     headers: {
       Accept: 'application/json',
       Authorization: `token ${accessToken}`
@@ -14,7 +11,7 @@ export async function fetchGithub(url: string, accessToken: string) {
   }).then((res) => res.json());
 }
 
-export async function getLoginLink(clientID: string, redirectUri = window.location.href) {
+export function getLoginLink(clientID: string, redirectUri = window.location.href) {
   const githubOauthUrl = 'https://github.com/login/oauth/authorize';
   const query = {
     client_id: clientID,
@@ -24,6 +21,24 @@ export async function getLoginLink(clientID: string, redirectUri = window.locati
   return `${githubOauthUrl}?${queryStringify(query)}`;
 }
 
+export async function getAccessToken(code: string, clientID: string, clientSecret: string) {
+  const url = `https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token`;
+  const query = {
+    code,
+    client_id: clientID,
+    client_secret: clientSecret
+  };
+  return fetch(url, {
+    method: 'POST',
+    headers: {
+      accept: 'application/json',
+      'content-type': 'application/json;charset=UTF-8'
+    },
+    body: JSON.stringify(query)
+  }).then((res) => res.json() as any as IAccessTokenResult);
+}
+
 export async function getUser(accessToken: string) {
-  return fetchGithub(`https://api.github.com/user`, accessToken);
+  const url = `https://api.github.com/user`;
+  return fetchGithub(url, accessToken);
 }
