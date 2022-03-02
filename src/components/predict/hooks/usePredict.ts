@@ -82,14 +82,16 @@ export default function usePredict() {
   };
 
   const changeHistoryRowNext = () => {
-    const { historyRows, updateHistory } = useStockHistory();
+    const { historyRows } = useStockHistory();
     if (historyRows.value && historyRows.value.length > 0) {
+      const nowHour = new Date().getHours();
       historyRows.value = historyRows.value.map((row) => {
         return {
           ...row,
-          nextPrice: nextSwitch.value
-            ? calcNextPrice(row.nowPrice.closePrice, row.nowPrice.highPrice, row.nowPrice.lowPrice)
-            : calcNextPrice(row.prevPrice.closePrice, row.prevPrice.highPrice, row.prevPrice.lowPrice)
+          nextPrice:
+            nextSwitch.value && nowHour >= 15
+              ? calcNextPrice(row.nowPrice.closePrice, row.nowPrice.highPrice, row.nowPrice.lowPrice)
+              : calcNextPrice(row.prevPrice.closePrice, row.prevPrice.highPrice, row.prevPrice.lowPrice)
         };
       });
     }
@@ -107,6 +109,7 @@ export default function usePredict() {
       stockEvtSource.value.onmessage = (ev: MessageEvent<string>) => {
         const stockListResult = JSON.parse(ev.data) as IStockListResult;
         if (stockListResult.data && stockListResult.data.diff) {
+          const nowHour = new Date().getHours();
           Object.values(stockListResult.data.diff).forEach((x) => {
             const existRow = historyRows.value?.find((row) => row.market === x.f13 && row.code === x.f12);
             if (existRow) {
@@ -123,9 +126,10 @@ export default function usePredict() {
               if (x.f17) {
                 existRow.nowPrice.openPrice = mathRound(x.f17 / Math.pow(10, existRow.precision), existRow.precision);
               }
-              existRow.nextPrice = nextSwitch.value
-                ? calcNextPrice(existRow.nowPrice.closePrice, existRow.nowPrice.highPrice, existRow.nowPrice.lowPrice)
-                : calcNextPrice(existRow.prevPrice.closePrice, existRow.prevPrice.highPrice, existRow.prevPrice.lowPrice);
+              existRow.nextPrice =
+                nextSwitch.value && nowHour >= 15
+                  ? calcNextPrice(existRow.nowPrice.closePrice, existRow.nowPrice.highPrice, existRow.nowPrice.lowPrice)
+                  : calcNextPrice(existRow.prevPrice.closePrice, existRow.prevPrice.highPrice, existRow.prevPrice.lowPrice);
               updateHistory(existRow);
             }
           });
