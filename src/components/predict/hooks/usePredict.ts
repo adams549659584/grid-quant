@@ -66,9 +66,9 @@ export default function usePredict() {
     const klineD1 = await getKLineD1(secid, 2);
     if (klineD1 && klineD1.data && klineD1.data.klineDatas && klineD1.data.klineDatas.length === 2) {
       const klineDatas = klineD1.data.klineDatas;
-      const dateNowStr = formatNow('yyyy-MM-dd');
+      const nowHour = new Date().getHours();
       // 当日收盘前
-      const klineData = nextSwitch.value || !isTradeDate || !isTradeTime ? klineDatas[1] : klineDatas[0];
+      const klineData = nextSwitch.value && ((isTradeDate.value && nowHour >= 15) || !isTradeDate.value) ? klineDatas[1] : klineDatas[0];
       const nextPrice = calcNextPrice(klineData.closePrice, klineData.highPrice, klineData.lowPrice);
       updateHistory(
         {
@@ -94,7 +94,7 @@ export default function usePredict() {
         return {
           ...row,
           nextPrice:
-            nextSwitch.value || !isTradeDate || !isTradeTime
+            nextSwitch.value && ((isTradeDate.value && nowHour >= 15) || !isTradeDate.value)
               ? calcNextPrice(row.nowPrice.closePrice, row.nowPrice.highPrice, row.nowPrice.lowPrice)
               : calcNextPrice(row.prevPrice.closePrice, row.prevPrice.highPrice, row.prevPrice.lowPrice)
         };
@@ -114,6 +114,7 @@ export default function usePredict() {
       stockEvtSource.value.onmessage = (ev: MessageEvent<string>) => {
         const stockListResult = JSON.parse(ev.data) as IStockListResult;
         if (stockListResult.data && stockListResult.data.diff) {
+          const nowHour = new Date().getHours();
           Object.values(stockListResult.data.diff).forEach((x) => {
             const existRow = historyRows.value?.find((row) => row.market === x.f13 && row.code === x.f12);
             if (existRow) {
@@ -130,8 +131,11 @@ export default function usePredict() {
               if (x.f17) {
                 existRow.nowPrice.openPrice = mathRound(x.f17 / Math.pow(10, existRow.precision), existRow.precision);
               }
+              // console.log(`nextSwitch.value : `, nextSwitch.value);
+              // console.log(`isTradeDate : `, isTradeDate.value);
+              // console.log(`isTradeTime : `, isTradeTime.value);
               existRow.nextPrice =
-                nextSwitch.value || !isTradeDate || !isTradeTime
+                nextSwitch.value && ((isTradeDate.value && nowHour >= 15) || !isTradeDate.value)
                   ? calcNextPrice(existRow.nowPrice.closePrice, existRow.nowPrice.highPrice, existRow.nowPrice.lowPrice)
                   : calcNextPrice(existRow.prevPrice.closePrice, existRow.prevPrice.highPrice, existRow.prevPrice.lowPrice);
               updateHistory(existRow);
