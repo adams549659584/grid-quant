@@ -70,7 +70,7 @@ const del = async (backupId: number) => {
   <div>
     <SvgIcon
       v-if="isShowSync"
-      class="w-[2rem] h-[2rem] cursor-pointer fixed top-4 right-4"
+      class="w-[2rem] h-[2rem] cursor-pointer absolute top-4 right-4"
       name="sync"
       color="#1296db"
       @click="sync"
