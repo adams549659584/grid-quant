@@ -177,7 +177,7 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
   const cacheConfig = pyramidConfigList.value.find((x) => x.market === config.market && x.code === config.code);
   // console.log(`showPyramidCalc showPyramidCalc :`, cacheConfig);
   Object.assign(pyramidConfig, cacheConfig || config);
-  pyramidConfig.mixTradeCount = pyramidConfig.name.endsWith('转债') ? 10 : 100;
+  pyramidConfig.mixTradeCount = pyramidConfig.name.endsWith('债') ? 10 : 100;
   if (!cacheConfig && !config.firstSalePrice && config.firstBuyPrice) {
     pyramidConfig.firstSalePrice = mathRound(config.firstBuyPrice * (1 + pyramidConfig.percentRate / 100), 3);
   }
