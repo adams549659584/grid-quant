@@ -78,7 +78,7 @@ const getBackupList = async () => {
   try {
     const comments = await getComments(loginToken.value, OWNER, REPO, userIssue.number);
     if (comments) {
-      commentList.value = comments.filter((x) => x.body && x.body.split(',').every((x) => +x)).reverse();
+      commentList.value = comments.filter((x) => x.body && x.body.split(',').every((x) => !Number.isNaN(+x))).reverse();
     } else {
       ElMessage.error('获取备份数据失败，请稍后重试');
     }
