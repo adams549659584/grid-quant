@@ -69,7 +69,7 @@ const getBackupList = async () => {
   let userIssue: IIssueResult;
   if (!userIssues || userIssues.length === 0) {
     const title = `db_stock_${loginUser.value.login}`;
-    const body = `db_stock`;
+    const body = `当前为接口自动生成的备份数据，不要评论及修改`;
     userIssue = await createIssue(loginToken.value, OWNER, REPO, title, body, [ISSUE_DB_STOCK_LABEL]);
   } else {
     userIssue = userIssues[0];
@@ -78,7 +78,7 @@ const getBackupList = async () => {
   try {
     const comments = await getComments(loginToken.value, OWNER, REPO, userIssue.number);
     if (comments) {
-      commentList.value = comments.reverse();
+      commentList.value = comments.filter((x) => x.body && x.body.split(',').every((x) => +x)).reverse();
     } else {
       ElMessage.error('获取备份数据失败，请稍后重试');
     }
