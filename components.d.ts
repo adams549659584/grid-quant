@@ -16,6 +16,8 @@ declare module 'vue' {
     ElPopover: typeof import('element-plus/es')['ElPopover']
     ElSelect: typeof import('element-plus/es')['ElSelect']
     ElSwitch: typeof import('element-plus/es')['ElSwitch']
+    ElTable: typeof import('element-plus/es')['ElTable']
+    ElTableColumn: typeof import('element-plus/es')['ElTableColumn']
     ElTabPane: typeof import('element-plus/es')['ElTabPane']
     ElTabs: typeof import('element-plus/es')['ElTabs']
     GridFooter: typeof import('./src/components/footer/GridFooter.vue')['default']
@@ -29,6 +31,7 @@ declare module 'vue' {
     StockDetail: typeof import('./src/components/stockDetail/StockDetail.vue')['default']
     StockSearch: typeof import('./src/components/search/StockSearch.vue')['default']
     SvgIcon: typeof import('./src/components/icons/SvgIcon.vue')['default']
+    Sync: typeof import('./src/components/auth/Sync.vue')['default']
   }
 }
 

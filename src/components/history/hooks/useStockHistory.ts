@@ -94,6 +94,8 @@ export default function useStockHistory() {
     }
     return JSON.parse(historyStr) as IHistoryRow[];
   };
+  const saveHistory = () => localStorage.setItem(historySearchResultKey, JSON.stringify(historyRows.value));
+
   const updateHistory = (newHistory: IHistoryRow, isMoveToFirst = false) => {
     let historys = getHistory();
     const isExistHistoryPredicate = (x: IHistoryRow) => newHistory.market === x.market && newHistory.code === x.code && newHistory.name === x.name;
@@ -109,14 +111,14 @@ export default function useStockHistory() {
       }
     }
     historyRows.value = historys;
-    localStorage.setItem(historySearchResultKey, JSON.stringify(historys));
+    saveHistory();
   };
 
   const delHistory = (row: IHistoryRow) => {
     let historys = getHistory();
     historys = historys.filter((x) => !(row.market === x.market && row.code === x.code && row.name === x.name));
     historyRows.value = historys;
-    localStorage.setItem(historySearchResultKey, JSON.stringify(historys));
+    saveHistory();
   };
 
   return {
@@ -127,6 +129,7 @@ export default function useStockHistory() {
     getHistory,
     updateHistory,
     delHistory,
+    saveHistory,
     rowFilters,
     rowSelectedFilter,
     rowSorts,

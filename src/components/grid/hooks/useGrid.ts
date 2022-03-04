@@ -274,7 +274,7 @@ const refreshPyramidCalc = () => {
   pyramidConfig && handlePyramidConfig();
 };
 
-const PyramidConfigCacheKey = 'pyramid_config_cache';
+const PyramidConfigCacheKey = 'pyramid_config';
 const savePyramidConfig = () => {
   const existIndex = pyramidConfigList.value.findIndex((x) => x.market === pyramidConfig.market && x.code === pyramidConfig.code);
   if (existIndex > -1) {
@@ -307,7 +307,8 @@ function useGrid() {
     hidePyramidCalc,
     refreshPyramidCalc,
     savePyramidConfig,
-    pyramidConfig
+    pyramidConfig,
+    pyramidConfigList
   };
 }
 

@@ -10,6 +10,7 @@ import MiniNextPriceCard from './components/predict/MiniNextPriceCard.vue';
 import StockDetail from './components/stockDetail/StockDetail.vue';
 import useStockDetail from './components/stockDetail/hooks/useStockDetail';
 import useAuth from './components/auth/hooks/useAuth';
+import Sync from './components/auth/Sync.vue';
 // import NextPriceTable from './components/predict/NextPriceTable.vue';
 
 const nextPriceTimer = ref(0);
@@ -104,14 +105,6 @@ const initNextPriceList = async () => {
 const init = async () => {
   historyRows.value = getHistory();
   initNextPriceList();
-  // const { isLogin, initLoginStatus, toLogin, getUserInfo } = useAuth();
-  // await initLoginStatus();
-  // console.log(`isLogin : `, isLogin.value);
-  // if (!isLogin.value) {
-  //   return toLogin();
-  // }
-  // const user = await getUserInfo();
-  // console.log(`user : `, user);
 };
 
 onMounted(() => {
@@ -130,6 +123,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div>
+    <Sync />
     <grid-header />
     <main class="min-h-[80vh]">
       <header class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap">

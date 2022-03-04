@@ -1,52 +1,171 @@
-import * as githubApi from '@/api/github/github-api';
+import { getLoginLink, getAccessToken, getUser, getIssueByCreator, createIssue, getComments, getComment, createComment, deleteComment } from '@/api/github/github-api';
 import { ref } from 'vue';
 import { queryParse } from '@/helpers/UrlHelper';
+import { IGithubUser } from '@/api/github/model/IGithubUser';
+import { ElMessage } from 'element-plus';
+import { IIssueResult } from '@/api/github/model/IIssueResult';
+import { ICommentResult } from '@/api/github/model/ICommentResult';
+import useStockHistory from '@/components/history/hooks/useStockHistory';
+import useGrid from '@/components/grid/hooks/useGrid';
+import { IBackupEnt } from '@/api/github/model/IBackupEnt';
+import { formatISO8601 } from '@/helpers/DateHelper';
+import { gzip, ungzip } from 'pako';
 
 const CLIENT_ID = import.meta.env.PROD ? 'a49f39a4ff0992e4a4e1' : 'e8b074f95d61ad093415';
 const CLIENT_SECRETS = import.meta.env.PROD ? 'ec0a698bc1d4f5671956902ebd6b602fbddf5876' : 'e7fe47f759271189442d69a4a66592563a3fd5ea';
 const ACCESS_TOKEN_CACHE_KEY = 'access_token';
 const OWNER = 'adams549659584';
 const REPO = 'grid-quant';
+const ISSUE_DB_STOCK_LABEL = 'db_stock';
 
 const isLogin = ref(false);
+const loginToken = ref('');
+const loginUser = ref<IGithubUser>();
+const loginUserIssue = ref<IIssueResult>();
+const commentList = ref<ICommentResult[]>();
 
-const getAuthToken = () => localStorage.getItem(ACCESS_TOKEN_CACHE_KEY) || '';
+const { historyRows, saveHistory } = useStockHistory();
+const { pyramidConfigList, savePyramidConfig } = useGrid();
 
 const toLogin = () => {
-  const loginUrl = githubApi.getLoginLink(CLIENT_ID, window.location.href);
+  const loginUrl = getLoginLink(CLIENT_ID, window.location.href);
   return (window.location.href = loginUrl);
 };
 const initLoginStatus = async () => {
-  let token = getAuthToken();
+  let token = localStorage.getItem(ACCESS_TOKEN_CACHE_KEY) || '';
   if (token) {
-    isLogin.value = true;
-    return;
+    loginToken.value = token;
+    loginUser.value = await getUser(token);
+    if (loginUser.value.login) {
+      isLogin.value = true;
+      return;
+    }
   }
   const { code } = queryParse();
   if (code) {
-    const tokenResult = await githubApi.getAccessToken(code, CLIENT_ID, CLIENT_SECRETS);
+    const tokenResult = await getAccessToken(code, CLIENT_ID, CLIENT_SECRETS);
     if (tokenResult && tokenResult.access_token) {
       token = tokenResult.access_token;
       localStorage.setItem(ACCESS_TOKEN_CACHE_KEY, token);
+      loginToken.value = token;
+      loginUser.value = await getUser(token);
       isLogin.value = true;
     }
   }
 };
 
-const getUserInfo = async () => {
-  return githubApi.getUser(getAuthToken());
+/**
+ * 获取备份列表
+ */
+const getBackupList = async () => {
+  if (!loginUser.value) {
+    ElMessage.error('请先登录');
+    return;
+  }
+  const userIssues = await getIssueByCreator(CLIENT_ID, CLIENT_SECRETS, OWNER, REPO, [ISSUE_DB_STOCK_LABEL], loginUser.value.login);
+  let userIssue: IIssueResult;
+  if (!userIssues || userIssues.length === 0) {
+    const title = `db_stock_${loginUser.value.login}`;
+    const body = `db_stock`;
+    userIssue = await createIssue(loginToken.value, OWNER, REPO, title, body, [ISSUE_DB_STOCK_LABEL]);
+  } else {
+    userIssue = userIssues[0];
+  }
+  loginUserIssue.value = userIssue;
+  try {
+    const comments = await getComments(loginToken.value, OWNER, REPO, userIssue.number);
+    if (comments) {
+      commentList.value = comments.reverse();
+    } else {
+      ElMessage.error('获取备份数据失败，请稍后重试');
+    }
+  } catch (error) {
+    ElMessage.error(`获取备份数据失败，请稍后重试 : ${JSON.stringify(error)}`);
+    return;
+  }
+  return commentList.value;
 };
 
-const getIssueById = async (issueNumber: number) => {
-  return githubApi.getIssueById(CLIENT_ID, CLIENT_SECRETS, OWNER, REPO, issueNumber);
+/**
+ * 备份
+ */
+const backup = async () => {
+  if (!loginUserIssue.value) {
+    ElMessage.error('备份数据初始化异常，请稍后重试');
+    return;
+  }
+  const backupEnt: IBackupEnt = {
+    historys: historyRows.value || [],
+    pyramids: pyramidConfigList.value
+  };
+  const commentBody = {
+    body: gzip(JSON.stringify(backupEnt), { to: 'string' })
+  };
+  try {
+    const createResult = await createComment(loginToken.value, OWNER, REPO, loginUserIssue.value.number, JSON.stringify(commentBody));
+    if (!createResult.body) {
+      ElMessage.error('备份失败，请稍后重试');
+      return;
+    }
+    ElMessage.success('备份成功');
+  } catch (error) {
+    ElMessage.error(`备份失败，请稍后重试 : ${JSON.stringify(error)}`);
+    return;
+  }
+};
+
+/**
+ * 还原备份
+ */
+const restore = async (backupId: number) => {
+  if (!commentList.value) {
+    ElMessage.error('备份数据初始化异常，请稍后重试');
+    return;
+  }
+  const commentEnt = commentList.value.find((x) => x.id === backupId);
+  if (!commentEnt || !commentEnt.body) {
+    ElMessage.error(`未找到备份数据 - ${backupId}`);
+    return;
+  }
+  const backupEnt = JSON.parse(ungzip(commentEnt.body, { to: 'string' })) as IBackupEnt;
+  if (!backupEnt) {
+    ElMessage.error(`备份数据 - ${backupId} 有误，请选择其他备份数据`);
+    return;
+  }
+  historyRows.value = backupEnt.historys;
+  pyramidConfigList.value = backupEnt.pyramids;
+  saveHistory();
+  savePyramidConfig();
+  ElMessage.success(`已还原 ${formatISO8601(commentEnt.updated_at, 'yyyy-MM-dd HH:mm:ss')} 的备份`);
+};
+
+/**
+ * 删除备份
+ */
+const delBackup = async (backupId: number) => {
+  if (!loginUserIssue.value) {
+    ElMessage.error('备份数据初始化异常，请稍后重试');
+    return;
+  }
+  try {
+    await deleteComment(loginToken.value, OWNER, REPO, backupId);
+    ElMessage.success('该备份已删除');
+  } catch (error) {
+    console.log(`delBackup : `, error);
+    ElMessage.error('删除备份失败，请稍后重试');
+  }
 };
 
 export default function useAuth() {
   return {
     isLogin,
+    loginUser,
+    commentList,
     initLoginStatus,
     toLogin,
-    getUserInfo,
-    getIssueById
+    getBackupList,
+    backup,
+    restore,
+    delBackup
   };
 }
