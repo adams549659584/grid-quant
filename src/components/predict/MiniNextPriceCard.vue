@@ -9,9 +9,9 @@ const { calcPercentRate } = usePredict();
 <template>
   <div class="flex justify-around items-center flex-wrap text-gray-800" v-if="filterHistoryRows && filterHistoryRows.length > 0">
     <div class="next-price-box relative rounded-md shadow-md shadow-gray-300" v-for="(row, index) in filterHistoryRows" :key="index">
-      <div class="absolute top-3 left-3 opacity-50 w-[4rem] h-[4rem]" v-if="row.nextPrice.firstSalePrice > row.nextPrice.firstBuyPrice">
-        <svg-icon v-if="row.nowPrice.closePrice <= row.nextPrice.firstBuyPrice" name="buy" color="#1afa29" />
-        <svg-icon v-if="row.nowPrice.closePrice >= row.nextPrice.firstSalePrice" name="sale" color="#d81e06" />
+      <div class="absolute top-3 left-3 opacity-50" v-if="row.nextPrice.firstSalePrice > row.nextPrice.firstBuyPrice">
+        <svg-icon class="w-[4rem] h-[4rem]" v-if="row.nowPrice.closePrice <= row.nextPrice.firstBuyPrice" name="buy" color="#1afa29" />
+        <svg-icon class="w-[4rem] h-[4rem]" v-if="row.nowPrice.closePrice >= row.nextPrice.firstSalePrice" name="sale" color="#d81e06" />
       </div>
       <div class="row p-2 text-center truncate">{{ `${row.code} ${row.name}` }}</div>
       <div class="row cursor-pointer">
