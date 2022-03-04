@@ -25,6 +25,7 @@ declare module 'vue' {
     GridHeader: typeof import('./src/components/header/GridHeader.vue')['default']
     KLineDetail: typeof import('./src/components/stockDetail/KLineDetail.vue')['default']
     KLineDetailBak: typeof import('./src/components/stockDetail/KLineDetailBak.vue')['default']
+    Loading: typeof import('element-plus/es')['ElLoadingDirective']
     MiniNextPriceCard: typeof import('./src/components/predict/MiniNextPriceCard.vue')['default']
     NextPriceCard: typeof import('./src/components/predict/NextPriceCard.vue')['default']
     NextPriceTable: typeof import('./src/components/predict/NextPriceTable.vue')['default']

@@ -9,7 +9,7 @@ import useStockHistory from '@/components/history/hooks/useStockHistory';
 import useGrid from '@/components/grid/hooks/useGrid';
 import { IBackupEnt } from '@/api/github/model/IBackupEnt';
 import { formatISO8601 } from '@/helpers/DateHelper';
-import { gzip, ungzip } from 'pako';
+import { compress, unCompress } from '@/helpers/CompressHelper';
 
 const CLIENT_ID = import.meta.env.PROD ? 'a49f39a4ff0992e4a4e1' : 'e8b074f95d61ad093415';
 const CLIENT_SECRETS = import.meta.env.PROD ? 'ec0a698bc1d4f5671956902ebd6b602fbddf5876' : 'e7fe47f759271189442d69a4a66592563a3fd5ea';
@@ -17,6 +17,7 @@ const ACCESS_TOKEN_CACHE_KEY = 'access_token';
 const OWNER = 'adams549659584';
 const REPO = 'grid-quant';
 const ISSUE_DB_STOCK_LABEL = 'db_stock';
+const DATE_FORMAT = 'yyyy-MM-dd HH:mm:ss';
 
 const isLogin = ref(false);
 const loginToken = ref('');
@@ -28,7 +29,9 @@ const { historyRows, saveHistory } = useStockHistory();
 const { pyramidConfigList, savePyramidConfig } = useGrid();
 
 const toLogin = () => {
-  const loginUrl = getLoginLink(CLIENT_ID, window.location.href);
+  // window.location.href;
+  const redirectUri = `${location.origin}${location.pathname}`;
+  const loginUrl = getLoginLink(CLIENT_ID, redirectUri);
   return (window.location.href = loginUrl);
 };
 const initLoginStatus = async () => {
@@ -99,8 +102,15 @@ const backup = async () => {
     pyramids: pyramidConfigList.value
   };
   const commentBody = {
-    body: gzip(JSON.stringify(backupEnt), { to: 'string' })
+    body: compress(JSON.stringify(backupEnt))
   };
+  if (commentList.value && commentList.value.length > 0) {
+    const existComment = commentList.value.find((x) => x.body === commentBody.body);
+    if (existComment) {
+      ElMessage.error(`新增备份与 ${formatISO8601(existComment.updated_at, DATE_FORMAT)} 的备份一致，无需备份`);
+      return;
+    }
+  }
   try {
     const createResult = await createComment(loginToken.value, OWNER, REPO, loginUserIssue.value.number, JSON.stringify(commentBody));
     if (!createResult.body) {
@@ -127,7 +137,7 @@ const restore = async (backupId: number) => {
     ElMessage.error(`未找到备份数据 - ${backupId}`);
     return;
   }
-  const backupEnt = JSON.parse(ungzip(commentEnt.body, { to: 'string' })) as IBackupEnt;
+  const backupEnt = JSON.parse(unCompress(commentEnt.body)) as IBackupEnt;
   if (!backupEnt) {
     ElMessage.error(`备份数据 - ${backupId} 有误，请选择其他备份数据`);
     return;
@@ -136,7 +146,7 @@ const restore = async (backupId: number) => {
   pyramidConfigList.value = backupEnt.pyramids;
   saveHistory();
   savePyramidConfig();
-  ElMessage.success(`已还原 ${formatISO8601(commentEnt.updated_at, 'yyyy-MM-dd HH:mm:ss')} 的备份`);
+  ElMessage.success(`已还原 ${formatISO8601(commentEnt.updated_at, DATE_FORMAT)} 的备份`);
 };
 
 /**
@@ -151,7 +161,7 @@ const delBackup = async (backupId: number) => {
     await deleteComment(loginToken.value, OWNER, REPO, backupId);
     ElMessage.success('该备份已删除');
   } catch (error) {
-    console.log(`delBackup : `, error);
+    console.error(`delBackup : `, error);
     ElMessage.error('删除备份失败，请稍后重试');
   }
 };
