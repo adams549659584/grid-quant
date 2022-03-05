@@ -50,7 +50,7 @@ export function getLoginLink(clientID: string, redirectUri = window.location.hre
 }
 
 export async function getAccessToken(code: string, clientID: string, clientSecret: string) {
-  const url = `https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token`;
+  const url = `https://cors-anywhere.herokuapp.com/https://github.com/login/oauth/access_token`;
   const query = {
     code,
     client_id: clientID,
