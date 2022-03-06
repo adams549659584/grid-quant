@@ -1,5 +1,5 @@
 import { jsonp } from '../base/http';
-import { IFundHoldDetailResult } from './model/IFundHoldDetailResult';
+import { IFundHoldDetail } from './model/IFundHoldDetailResult';
 import { IKLineResult, IKLineRow } from './model/IKLineResult';
 import { ISearchResult } from './model/ISearchResult';
 import { IStockTrendsResult } from './model/IStockTrendsResult';
@@ -101,10 +101,35 @@ export function getStockListApi(refeshtime: 2000 | 5000 | 100000, secids: string
  * 获取基金持仓明细
  * @param fundCode 基金代码
  */
-export async function getFundHoldDetail(fundCode: string) {
-  const url = `https://fundmobapi.eastmoney.com/FundMNewApi/FundMNInverstPosition?FCODE=${fundCode}&deviceid=Wap&plat=Wap&product=EFund&version=2.0.0&Uid=&_=${Date.now()}`;
-  const result = await jsonp<IFundHoldDetailResult>(url);
-  return result;
+export async function getFundHoldDetail(fundCode: string, topline: number = 10) {
+  // https://blog.wangmao.me/nginx-create-cors-anywhere.html
+  const url = `https://cors-anywhere.azm.workers.dev/https://fundf10.eastmoney.com/FundArchivesDatas.aspx?type=jjcc&code=${fundCode}&topline=${topline}&year=&month=&rt=${Date.now()}`;
+  const resText = await fetch(url,{}).then((res) => res.text());
+  const apidata: { arryear: number[]; content: string; curyear: number } = new Function(`${resText} return apidata;`)();
+  const stockHtml = document.createElement('html');
+  stockHtml.innerHTML = apidata.content;
+  const secidMaps = stockHtml
+    .querySelector<HTMLElement>('.box:nth-child(1) #gpdmList')
+    ?.innerText.split(',')
+    .reduce((prev, curr) => {
+      if (curr) {
+        const secidArr = curr.split('.');
+        prev.set(secidArr[1], +secidArr[0]);
+      }
+      return prev;
+    }, new Map<string, number>());
+  const results: IFundHoldDetail[] = Array.from(stockHtml.querySelectorAll('.box:nth-child(1) tbody tr')).map((x) => {
+    const code = (x.children[1] as HTMLElement).innerText;
+    return {
+      code,
+      name: (x.children[2] as HTMLElement).innerText,
+      market: (secidMaps && secidMaps.get(code)) || 0,
+      holdPercentage: (x.children[6] as HTMLElement).innerText,
+      holdCount: (x.children[7] as HTMLElement).innerText,
+      holdAmt: (x.children[6] as HTMLElement).innerText
+    };
+  });
+  return results;
 }
 
 /**
