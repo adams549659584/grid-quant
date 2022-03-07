@@ -67,42 +67,42 @@ export async function getAccessToken(code: string, clientID: string, clientSecre
 }
 
 export async function getUser(accessToken: string) {
-  const url = `https://api.github.com/user`;
-  return fetchGithubByToken<IGithubUser>(url, accessToken);
+  const url = `https://api.github.com/user?t=${Date.now()}`;
+  return fetchGithubByToken<IGithubUser>(url, accessToken, 'GET');
 }
 
 export async function getIssueById(clientID: string, clientSecret: string, owner: string, repo: string, number: number) {
-  const url = `https://api.github.com/repos/${owner}/${repo}/issues/${number}`;
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues/${number}t=${Date.now()}`;
   return fetchGithubByAuth(url, clientID, clientSecret, 'GET');
 }
 
-export async function getIssueByCreator(clientID: string, clientSecret: string, owner: string, repo: string, labels: string[], creator: string) {
-  const url = `https://api.github.com/repos/${owner}/${repo}/issues?labels=${labels.join(',')}&creator=${creator}`;
+export async function getIssueByCreator(clientID: string, clientSecret: string, owner: string, repo: string, creator: string) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues?creator=${creator}&t=${Date.now()}`;
   return fetchGithubByAuth<IIssueResult[]>(url, clientID, clientSecret, 'GET');
 }
 
-export async function createIssue(accessToken: string, owner: string, repo: string, title: string, body: string, labels: string[]) {
-  const url = `https://api.github.com/repos/${owner}/${repo}/issues`;
-  const args = { title, body, labels };
+export async function createIssue(accessToken: string, owner: string, repo: string, title: string, body: string) {
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues?t=${Date.now()}`;
+  const args = { title, body };
   return fetchGithubByToken<IIssueResult>(url, accessToken, 'POST', JSON.stringify(args));
 }
 
 export async function getComments(accessToken: string, owner: string, repo: string, issueNumber: number) {
-  const url = `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/comments`;
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/comments?t=${Date.now()}`;
   return fetchGithubByToken<ICommentResult[]>(url, accessToken, 'GET', undefined, 'application/vnd.github.v3.full+json');
 }
 export async function getComment(accessToken: string, owner: string, repo: string, commentId: number) {
-  const url = `https://api.github.com/repos/${owner}/${repo}/issues/comments/${commentId}`;
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues/comments/${commentId}?t=${Date.now()}`;
   return fetchGithubByToken<ICommentResult>(url, accessToken, 'GET', undefined, 'application/vnd.github.v3.full+json');
 }
 
 export async function createComment(accessToken: string, owner: string, repo: string, issueNumber: number, body: string) {
-  const url = `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/comments`;
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/comments?t=${Date.now()}`;
   return fetchGithubByToken<ICommentResult>(url, accessToken, 'POST', body, 'application/vnd.github.v3.full+json');
 }
 
 export async function deleteComment(accessToken: string, owner: string, repo: string, commentId: number) {
-  const url = `https://api.github.com/repos/${owner}/${repo}/issues/comments/${commentId}`;
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues/comments/${commentId}?t=${Date.now()}`;
   return fetchGithubByToken(url, accessToken, 'DELETE', undefined, 'application/vnd.github.v3.full+json');
 }
 

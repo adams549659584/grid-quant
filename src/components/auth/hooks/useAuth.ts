@@ -16,7 +16,6 @@ const CLIENT_SECRETS = import.meta.env.PROD ? 'ec0a698bc1d4f5671956902ebd6b602fb
 const ACCESS_TOKEN_CACHE_KEY = 'access_token';
 const OWNER = 'adams549659584';
 const REPO = 'grid-quant';
-const ISSUE_DB_STOCK_LABEL = 'db_stock';
 const DATE_FORMAT = 'yyyy-MM-dd HH:mm:ss';
 
 const isLogin = ref(false);
@@ -65,14 +64,22 @@ const getBackupList = async () => {
     ElMessage.error('请先登录');
     return;
   }
-  const userIssues = await getIssueByCreator(CLIENT_ID, CLIENT_SECRETS, OWNER, REPO, [ISSUE_DB_STOCK_LABEL], loginUser.value.login);
+  const userIssues = await getIssueByCreator(CLIENT_ID, CLIENT_SECRETS, OWNER, REPO, loginUser.value.login);
   let userIssue: IIssueResult;
+  const title = `db_stock_${loginUser.value.login}`;
+  // console.log(`userIssues : `, userIssues);
   if (!userIssues || userIssues.length === 0) {
-    const title = `db_stock_${loginUser.value.login}`;
     const body = `当前为接口自动生成的备份数据，不要评论及修改`;
-    userIssue = await createIssue(loginToken.value, OWNER, REPO, title, body, [ISSUE_DB_STOCK_LABEL]);
+    userIssue = await createIssue(loginToken.value, OWNER, REPO, title, body);
+    // console.log(`createIssue : `, userIssue);
   } else {
-    userIssue = userIssues[0];
+    const backupIssue = userIssues.find((x) => x.title === title);
+    if (!backupIssue) {
+      ElMessage.error('备份数据有误，请稍后重试');
+      return;
+    }
+    userIssue = backupIssue;
+    // console.log(`backupIssue : `, backupIssue);
   }
   loginUserIssue.value = userIssue;
   try {
