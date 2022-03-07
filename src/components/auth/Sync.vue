@@ -43,7 +43,7 @@ const loadBackupList = async () => {
   isLoadingBackupList.value = true;
   await getBackupList();
   isLoadingBackupList.value = false;
-}
+};
 
 const add = async () => {
   const loadingInstance = ElLoading.service({
@@ -68,36 +68,20 @@ const del = async (backupId: number) => {
 
 <template>
   <div>
-    <SvgIcon
-      v-if="isShowSync"
-      class="w-[2rem] h-[2rem] cursor-pointer absolute top-4 right-4"
-      name="sync"
-      color="#1296db"
-      @click="sync"
-    />
+    <div class="cursor-pointer absolute top-4 right-4 flex justify-center items-center space-x-1">
+      <h1 v-if="loginUser" class="text-gray-500">{{ loginUser.login }}</h1>
+      <SvgIcon class="w-[2rem] h-[2rem]" v-if="isShowSync" name="sync" color="#1296db" @click="sync" />
+    </div>
     <div
       v-if="isShowBackupDialog"
       class="fixed top-0 left-0 bg-black/70 w-full h-full flex justify-center items-center px-1 md:px-6 z-10 box-border cursor-not-allowed overflow-hidden"
       @touchmove.prevent
       @mousewheel.prevent
     >
-      <div
-        class="w-full p-[0.5rem] md:w-[24rem] bg-white rounded-md mx-auto text-left leading-none z-20 relative max-h-[80%] overflow-auto"
-      >
-        <SvgIcon
-          class="w-[2rem] h-[2rem] absolute top-[0.1rem] right-[0.4rem] cursor-pointer z-30"
-          name="close"
-          color="#999"
-          @click="isShowBackupDialog = false"
-        />
+      <div class="w-full p-[0.5rem] md:w-[24rem] bg-white rounded-md mx-auto text-left leading-none z-20 relative max-h-[80%] overflow-auto">
+        <SvgIcon class="w-[2rem] h-[2rem] absolute top-[0.1rem] right-[0.4rem] cursor-pointer z-30" name="close" color="#999" @click="isShowBackupDialog = false" />
         <el-button class="mb-2" type="primary" @click="add">新增备份</el-button>
-        <el-table
-          v-loading="isLoadingBackupList"
-          :data="commentList"
-          stripe
-          border
-          empty-text="暂无数据"
-        >
+        <el-table v-loading="isLoadingBackupList" :data="commentList" stripe border empty-text="暂无数据">
           <el-table-column label="备份时间">
             <template #default="scope">
               <div>{{ formatISO8601(scope.row.updated_at, 'yyyy-MM-dd HH:mm:ss') }}</div>
