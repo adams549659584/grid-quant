@@ -10,6 +10,7 @@ import useGrid from '@/components/grid/hooks/useGrid';
 import { IBackupEnt } from '@/api/github/model/IBackupEnt';
 import { formatISO8601 } from '@/helpers/DateHelper';
 import { compress, unCompress } from '@/helpers/CompressHelper';
+import usePredict from '@/components/predict/hooks/usePredict';
 
 const CLIENT_ID = import.meta.env.PROD ? 'a49f39a4ff0992e4a4e1' : 'e8b074f95d61ad093415';
 const CLIENT_SECRETS = import.meta.env.PROD ? 'ec0a698bc1d4f5671956902ebd6b602fbddf5876' : 'e7fe47f759271189442d69a4a66592563a3fd5ea';
@@ -26,6 +27,7 @@ const commentList = ref<ICommentResult[]>();
 
 const { historyRows, saveHistory } = useStockHistory();
 const { pyramidConfigList, savePyramidConfig } = useGrid();
+const { calcNext, getLastTradeDate } = usePredict();
 
 const toLogin = () => {
   // window.location.href;
@@ -154,6 +156,12 @@ const restore = async (backupId: number) => {
   saveHistory();
   savePyramidConfig();
   ElMessage.success(`已还原 ${formatISO8601(commentEnt.updated_at, DATE_FORMAT)} 的备份`);
+  // 过期的数据需更新最新
+  const lastTradeDate = await getLastTradeDate();
+  const expiredRows = historyRows.value.filter((x) => x.nowPrice.dateStr !== lastTradeDate);
+  if (expiredRows && expiredRows.length > 0) {
+    await Promise.allSettled(expiredRows.map((row) => calcNext(`${row.market}.${row.code}`)));
+  }
 };
 
 /**

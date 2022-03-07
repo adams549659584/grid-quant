@@ -9,7 +9,6 @@ import NextPriceCard from './components/predict/NextPriceCard.vue';
 import MiniNextPriceCard from './components/predict/MiniNextPriceCard.vue';
 import StockDetail from './components/stockDetail/StockDetail.vue';
 import useStockDetail from './components/stockDetail/hooks/useStockDetail';
-import useAuth from './components/auth/hooks/useAuth';
 import Sync from './components/auth/Sync.vue';
 // import NextPriceTable from './components/predict/NextPriceTable.vue';
 
@@ -42,7 +41,7 @@ const defaultStocks = [
   // '0.159883', // 医疗器械ETF
   // '1.513050', // 中概互联网ETF
   // '1.513330', // 恒生互联网ETF
-  '0.159967', // 创成长ETF
+  '0.159967' // 创成长ETF
   // '0.159745', // 建材ETF
   // '1.512200', // 房地产ETF
   // '0.159825', // 农业ETF
@@ -92,10 +91,11 @@ const initNextPriceList = async () => {
     return;
   }
   const lastTradeDate = await getLastTradeDate();
-  if (historyRows.value[0].nowPrice.dateStr !== lastTradeDate) {
-    await Promise.allSettled(historyRows.value.map((row) => calcNext(`${row.market}.${row.code}`)));
+  const expiredRows = historyRows.value.filter((x) => x.nowPrice.dateStr !== lastTradeDate);
+  if (expiredRows && expiredRows.length > 0) {
+    await Promise.allSettled(expiredRows.map((row) => calcNext(`${row.market}.${row.code}`)));
   }
-  if (historyRows.value[0].nowPrice.dateStr === lastTradeDate && isTradeTime.value) {
+  if (historyRows.value.every((x) => x.nowPrice.dateStr === lastTradeDate) && isTradeTime.value) {
     initStockEventSource();
   } else {
     changeHistoryRowNext();
@@ -126,21 +126,10 @@ onBeforeUnmount(() => {
     <Sync />
     <grid-header />
     <main class="min-h-[80vh]">
-      <header
-        class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap"
-      >
-        <el-switch
-          v-if="isShowNextSwitchChange"
-          v-model="nextSwitch"
-          inline-prompt
-          active-text="预"
-          inactive-text="回"
-          @change="nextSwitchChange"
-        />
+      <header class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap">
+        <el-switch v-if="isShowNextSwitchChange" v-model="nextSwitch" inline-prompt active-text="预" inactive-text="回" @change="nextSwitchChange" />
         <stock-search />
-        <div
-          class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap mt-4 md:mt-0"
-        >
+        <div class="flex justify-center items-center space-x-1 md:space-x-4 overflow-hidden flex-wrap mt-4 md:mt-0">
           <el-select class="w-[6.5rem]" v-model="nextPriceStyle">
             <el-option v-for="item in nextPriceStyleList" :key="item" :label="item" :value="item"></el-option>
           </el-select>
