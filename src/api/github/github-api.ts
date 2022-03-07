@@ -72,12 +72,12 @@ export async function getUser(accessToken: string) {
 }
 
 export async function getIssueById(clientID: string, clientSecret: string, owner: string, repo: string, number: number) {
-  const url = `https://api.github.com/repos/${owner}/${repo}/issues/${number}t=${Date.now()}`;
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues/${number}?t=${Date.now()}`;
   return fetchGithubByAuth(url, clientID, clientSecret, 'GET');
 }
 
 export async function getIssueByCreator(clientID: string, clientSecret: string, owner: string, repo: string, creator: string) {
-  const url = `https://api.github.com/repos/${owner}/${repo}/issues?creator=${creator}&t=${Date.now()}`;
+  const url = `https://api.github.com/repos/${owner}/${repo}/issues?state=all&creator=${creator}&t=${Date.now()}`;
   return fetchGithubByAuth<IIssueResult[]>(url, clientID, clientSecret, 'GET');
 }
 
