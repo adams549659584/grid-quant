@@ -25,7 +25,7 @@ export function formatNow(fmt: string) {
 export function formatISO8601(iosDateStr: string, fmt?: string) {
   const dateParts = iosDateStr.match(/\d+/g);
   if (dateParts && dateParts.length >= 5) {
-    const isoTime = Date.UTC(+dateParts[0], +dateParts[1], +dateParts[2], +dateParts[3], +dateParts[4], +dateParts[5]);
+    const isoTime = Date.UTC(+dateParts[0], +dateParts[1] - 1, +dateParts[2], +dateParts[3], +dateParts[4], +dateParts[5]);
     const date = new Date(isoTime);
     if (fmt) {
       return format(date, fmt);
