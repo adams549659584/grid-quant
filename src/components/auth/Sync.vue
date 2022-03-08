@@ -5,6 +5,7 @@ import { onMounted, ref } from 'vue';
 import SvgIcon from '../icons/SvgIcon.vue';
 import useAuth from './hooks/useAuth';
 import { queryParse } from '@/helpers/UrlHelper';
+import useStockHistory from '../history/hooks/useStockHistory';
 
 const isShowSync = ref(false);
 const isShowBackupDialog = ref(false);
@@ -33,6 +34,7 @@ const init = async () => {
   const { code } = queryParse();
   if (code && isLogin.value) {
     sync();
+    window.history.replaceState(null, '', window.location.pathname);
   }
 };
 
@@ -89,7 +91,12 @@ const toMyBackup = async () => {
   loadBackupList(!myCommentList.value || myCommentList.value.length === 0);
 };
 const queryOtherBackup = async () => {
-  ElMessageBox.prompt('请输入大佬的ID', undefined, {
+  const { isMobileScreen } = useStockHistory();
+  if (isMobileScreen) {
+    const crateo = window.prompt('请输入大佬的ID');
+
+  }else{
+    ElMessageBox.prompt('请输入大佬的ID', undefined, {
     confirmButtonText: '确定',
     cancelButtonText: '取消'
   })
@@ -102,13 +109,14 @@ const queryOtherBackup = async () => {
     .catch(() => {
       ElMessage.info('已返回我的备份');
     });
+  }
 };
 </script>
 
 <template>
   <div>
     <div class="cursor-pointer absolute top-4 right-4 flex justify-center items-center space-x-1">
-      <h1 v-if="loginUser" class="text-gray-500">{{ loginUser.login }}</h1>
+      <h1 v-if="loginUser" class="hidden md:block text-gray-500">{{ loginUser.login }}</h1>
       <SvgIcon class="w-[2rem] h-[2rem]" v-if="isShowSync" name="sync" color="#1296db" @click="sync" />
     </div>
     <div
