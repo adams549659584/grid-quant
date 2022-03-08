@@ -93,22 +93,37 @@ const toMyBackup = async () => {
 const queryOtherBackup = async () => {
   const { isMobileScreen } = useStockHistory();
   if (isMobileScreen) {
-    const crateo = window.prompt('请输入大佬的ID');
-
-  }else{
-    ElMessageBox.prompt('请输入大佬的ID', undefined, {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消'
-  })
-    .then(async ({ value }) => {
+    const creator = window.prompt('请输入大佬的ID');
+    if (creator) {
       isQueryOtherBackup.value = true;
-      const isLoading = otherBackupCreator.value !== value;
-      otherBackupCreator.value = value.trim();
+      console.log(`creator : `, creator);
+      console.log(`otherBackupCreator : `, otherBackupCreator.value);
+      const isLoading = otherBackupCreator.value !== creator;
+      otherBackupCreator.value = creator.trim();
+      if (isLoading) {
+        otherCommentList.value = [];
+      }
       await loadBackupList(isLoading);
-    })
-    .catch(() => {
+    } else {
       ElMessage.info('已返回我的备份');
-    });
+    }
+  } else {
+    ElMessageBox.prompt('请输入大佬的ID', undefined, {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消'
+    })
+      .then(async ({ value }) => {
+        isQueryOtherBackup.value = true;
+        const isLoading = otherBackupCreator.value !== value;
+        otherBackupCreator.value = value.trim();
+        if (isLoading) {
+          otherCommentList.value = [];
+        }
+        await loadBackupList(isLoading);
+      })
+      .catch(() => {
+        ElMessage.info('已返回我的备份');
+      });
   }
 };
 </script>
