@@ -1,5 +1,5 @@
-import { getLoginLink, getAccessToken, getUser, getIssueByCreator, createIssue, getComments, getComment, createComment, deleteComment } from '@/api/github/github-api';
-import { ref } from 'vue';
+import { getLoginLink, getAccessToken, getUser, getIssueByCreator, createIssue, getComments, getComment, createComment, deleteComment, queryIssue } from '@/api/github/github-api';
+import { computed, ref } from 'vue';
 import { queryParse } from '@/helpers/UrlHelper';
 import { IGithubUser } from '@/api/github/model/IGithubUser';
 import { ElMessage } from 'element-plus';
@@ -23,7 +23,13 @@ const isLogin = ref(false);
 const loginToken = ref('');
 const loginUser = ref<IGithubUser>();
 const loginUserIssue = ref<IIssueResult>();
-const commentList = ref<ICommentResult[]>();
+const isQueryOtherBackup = ref(false);
+const otherBackupCreator = ref('');
+const myCommentList = ref<ICommentResult[]>();
+const otherCommentList = ref<ICommentResult[]>();
+const commentList = computed(() => {
+  return isQueryOtherBackup.value ? otherCommentList.value : myCommentList.value;
+});
 
 const { historyRows, saveHistory } = useStockHistory();
 const { pyramidConfigList, savePyramidConfig } = useGrid();
@@ -87,7 +93,7 @@ const getBackupList = async () => {
   try {
     const comments = await getComments(loginToken.value, OWNER, REPO, userIssue.number);
     if (comments) {
-      commentList.value = comments.filter((x) => x.body && x.body.split(',').every((x) => !Number.isNaN(+x))).reverse();
+      myCommentList.value = comments.filter((x) => x.body && x.body.split(',').every((x) => !Number.isNaN(+x))).reverse();
     } else {
       ElMessage.error('获取备份数据失败，请稍后重试');
     }
@@ -95,7 +101,27 @@ const getBackupList = async () => {
     ElMessage.error(`获取备份数据失败，请稍后重试 : ${JSON.stringify(error)}`);
     return;
   }
-  return commentList.value;
+  return myCommentList.value;
+};
+
+const queryOtherBackupList = async (creator: string) => {
+  const otherIssues = await getIssueByCreator(CLIENT_ID, CLIENT_SECRETS, OWNER, REPO, creator);
+  if (otherIssues && otherIssues.length > 0) {
+    const title = `db_stock_${creator}`;
+    const otherIssue = otherIssues.find((x) => x.title === title);
+    if (!otherIssue) {
+      ElMessage.error(`未找到 ${creator} 的备份数据`);
+      return;
+    }
+    const comments = await getComments(loginToken.value, OWNER, REPO, otherIssue.number);
+    if (comments) {
+      otherCommentList.value = comments.filter((x) => x.body && x.body.split(',').every((x) => !Number.isNaN(+x))).reverse();
+    } else {
+      ElMessage.error(`${creator} 的备份数据有误，请稍后重试`);
+    }
+  } else {
+    ElMessage.error(`未找到 ${creator} 的备份数据`);
+  }
 };
 
 /**
@@ -127,6 +153,7 @@ const backup = async () => {
       return;
     }
     ElMessage.success('备份成功');
+    myCommentList.value = [createResult, ...(myCommentList.value || [])];
   } catch (error) {
     ElMessage.error(`备份失败，请稍后重试 : ${JSON.stringify(error)}`);
     return;
@@ -175,6 +202,9 @@ const delBackup = async (backupId: number) => {
   try {
     await deleteComment(loginToken.value, OWNER, REPO, backupId);
     ElMessage.success('该备份已删除');
+    if (myCommentList.value) {
+      myCommentList.value = myCommentList.value.filter((x) => x.id !== backupId);
+    }
   } catch (error) {
     console.error(`delBackup : `, error);
     ElMessage.error('删除备份失败，请稍后重试');
@@ -185,12 +215,17 @@ export default function useAuth() {
   return {
     isLogin,
     loginUser,
+    myCommentList,
+    otherCommentList,
     commentList,
+    isQueryOtherBackup,
+    otherBackupCreator,
     initLoginStatus,
     toLogin,
     getBackupList,
     backup,
     restore,
-    delBackup
+    delBackup,
+    queryOtherBackupList
   };
 }

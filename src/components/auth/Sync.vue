@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { formatISO8601 } from '@/helpers/DateHelper';
-import { ElLoading } from 'element-plus';
+import { ElLoading, ElMessage, ElMessageBox } from 'element-plus';
 import { onMounted, ref } from 'vue';
 import SvgIcon from '../icons/SvgIcon.vue';
 import useAuth from './hooks/useAuth';
@@ -9,7 +9,22 @@ import { queryParse } from '@/helpers/UrlHelper';
 const isShowSync = ref(false);
 const isShowBackupDialog = ref(false);
 const isLoadingBackupList = ref(false);
-const { isLogin, loginUser, commentList, initLoginStatus, toLogin, getBackupList, backup, delBackup, restore } = useAuth();
+const {
+  isLogin,
+  loginUser,
+  myCommentList,
+  otherCommentList,
+  commentList,
+  isQueryOtherBackup,
+  otherBackupCreator,
+  initLoginStatus,
+  toLogin,
+  getBackupList,
+  backup,
+  delBackup,
+  restore,
+  queryOtherBackupList
+} = useAuth();
 
 const init = async () => {
   await initLoginStatus();
@@ -36,12 +51,16 @@ const sync = async () => {
   // console.log(`loginUser : `, loginUser.value);
   // loadingInstance.close();
   isShowBackupDialog.value = true;
-  loadBackupList();
+  loadBackupList(!myCommentList.value || myCommentList.value.length === 0);
 };
 
-const loadBackupList = async () => {
-  isLoadingBackupList.value = true;
-  await getBackupList();
+const loadBackupList = async (isLoading = true) => {
+  isLoadingBackupList.value = isLoading;
+  if (isQueryOtherBackup.value) {
+    await queryOtherBackupList(otherBackupCreator.value);
+  } else {
+    await getBackupList();
+  }
   isLoadingBackupList.value = false;
 };
 
@@ -51,7 +70,7 @@ const add = async () => {
     text: '备份中'
   });
   await backup();
-  loadBackupList();
+  loadBackupList(false);
   loadingInstance.close();
 };
 
@@ -61,8 +80,28 @@ const del = async (backupId: number) => {
     text: '删除中'
   });
   await delBackup(backupId);
-  loadBackupList();
+  loadBackupList(false);
   loadingInstance.close();
+};
+
+const toMyBackup = async () => {
+  isQueryOtherBackup.value = false;
+  loadBackupList(!myCommentList.value || myCommentList.value.length === 0);
+};
+const queryOtherBackup = async () => {
+  ElMessageBox.prompt('请输入大佬的ID', undefined, {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消'
+  })
+    .then(async ({ value }) => {
+      isQueryOtherBackup.value = true;
+      const isLoading = otherBackupCreator.value !== value;
+      otherBackupCreator.value = value.trim();
+      await loadBackupList(isLoading);
+    })
+    .catch(() => {
+      ElMessage.info('已返回我的备份');
+    });
 };
 </script>
 
@@ -80,7 +119,9 @@ const del = async (backupId: number) => {
     >
       <div class="w-full p-[0.5rem] md:w-[24rem] bg-white rounded-md mx-auto text-left leading-none z-20 relative max-h-[80%] overflow-auto">
         <SvgIcon class="w-[2rem] h-[2rem] absolute top-[0.1rem] right-[0.4rem] cursor-pointer z-30" name="close" color="#999" @click="isShowBackupDialog = false" />
-        <el-button class="mb-2" type="primary" @click="add">新增备份</el-button>
+        <el-button v-if="isQueryOtherBackup" class="mb-2" type="success" @click="toMyBackup">返回我的备份</el-button>
+        <el-button v-else class="mb-2" type="success" @click="queryOtherBackup">查看大佬备份</el-button>
+        <el-button v-if="!isQueryOtherBackup" class="mb-2" type="primary" @click="add">新增备份</el-button>
         <el-table v-loading="isLoadingBackupList" :data="commentList" stripe border empty-text="暂无数据">
           <el-table-column label="备份时间">
             <template #default="scope">
@@ -90,7 +131,7 @@ const del = async (backupId: number) => {
           <el-table-column align="right" label="操作">
             <template #default="scope">
               <el-button @click="restore(scope.row.id)">还原</el-button>
-              <el-button type="danger" @click="del(scope.row.id)">删除</el-button>
+              <el-button v-if="!isQueryOtherBackup" type="danger" @click="del(scope.row.id)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
