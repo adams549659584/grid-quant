@@ -1,4 +1,4 @@
-import { getLoginLink, getAccessToken, getUser, getIssueByCreator, createIssue, getComments, getComment, createComment, deleteComment, queryIssue } from '@/api/github/github-api';
+import { getLoginLink, getAccessToken, getUser, getIssueByCreator, createIssue, getComments, getComment, createComment, deleteComment } from '@/api/github/github-api';
 import { computed, ref } from 'vue';
 import { queryParse } from '@/helpers/UrlHelper';
 import { IGithubUser } from '@/api/github/model/IGithubUser';
