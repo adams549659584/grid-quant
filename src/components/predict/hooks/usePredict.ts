@@ -102,7 +102,7 @@ export default function usePredict() {
     }
   };
 
-  const initStockEventSource = () => {
+  const initStockEventSource = (isLoadOnce = false) => {
     const { historyRows, updateHistory } = useStockHistory();
     if (historyRows.value && historyRows.value.length > 0) {
       const stockListApi = getStockListApi(
@@ -141,6 +141,9 @@ export default function usePredict() {
               updateHistory(existRow);
             }
           });
+        }
+        if (isLoadOnce) {
+          stockEvtSource.value && stockEvtSource.value.close();
         }
         // else {
         //   isTradeTime.value = false;

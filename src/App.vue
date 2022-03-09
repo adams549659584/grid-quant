@@ -98,7 +98,7 @@ const initNextPriceList = async () => {
   if (historyRows.value.every((x) => x.nowPrice.dateStr === lastTradeDate) && isTradeTime.value) {
     initStockEventSource();
   } else {
-    changeHistoryRowNext();
+    initStockEventSource(true);
   }
 };
 
