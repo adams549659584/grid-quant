@@ -49,7 +49,7 @@ onMounted(() => {
         <el-input-number v-model="pyramidConfig.percentRate" :precision="2" :min="0.1" :max="Math.round((1 / pyramidConfig.layerCount) * 100)" :step="1" />
         <span class="ml-1">%</span>
       </el-form-item>
-      <el-form-item label="单笔份额">
+      <el-form-item label="初始份额">
         <el-input-number v-model="pyramidConfig.initTradeCount" :precision="0" :min="pyramidConfig.mixTradeCount" :step="pyramidConfig.mixTradeCount" />
       </el-form-item>
       <el-form-item label="建仓价格">
