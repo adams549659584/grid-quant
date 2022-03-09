@@ -103,8 +103,10 @@ export function getStockListApi(refeshtime: 2000 | 5000 | 100000, secids: string
  */
 export async function getFundHoldDetail(fundCode: string, topline: number = 10) {
   // https://blog.wangmao.me/nginx-create-cors-anywhere.html
-  const url = `https://cors-anywhere.azm.workers.dev/https://fundf10.eastmoney.com/FundArchivesDatas.aspx?type=jjcc&code=${fundCode}&topline=${topline}&year=&month=&rt=${Date.now()}`;
-  const resText = await fetch(url,{}).then((res) => res.text());
+  const url = `https://cors-anywhere.azm.workers.dev/${encodeURIComponent(
+    `https://fundf10.eastmoney.com/FundArchivesDatas.aspx?type=jjcc&code=${fundCode}&topline=${topline}&year=&month=&rt=${Date.now()}`
+  )}`;
+  const resText = await fetch(url, {}).then((res) => res.text());
   const apidata: { arryear: number[]; content: string; curyear: number } = new Function(`${resText} return apidata;`)();
   const stockHtml = document.createElement('html');
   stockHtml.innerHTML = apidata.content;
@@ -126,7 +128,7 @@ export async function getFundHoldDetail(fundCode: string, topline: number = 10) 
       market: (secidMaps && secidMaps.get(code)) || 0,
       holdPercentage: (x.children[6] as HTMLElement).innerText,
       holdCount: (x.children[7] as HTMLElement).innerText,
-      holdAmt: (x.children[6] as HTMLElement).innerText
+      holdAmt: (x.children[8] as HTMLElement).innerText
     };
   });
   return results;
