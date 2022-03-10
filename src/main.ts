@@ -3,4 +3,10 @@ import App from './App.vue';
 import './index.css';
 import 'virtual:svg-icons-register';
 
-createApp(App).mount('#app');
+const app = createApp(App);
+app.config.errorHandler = (err, instance) => {
+  console.error(`global err : `, err);
+  console.error(`global err instance : `, instance);
+  window.location.reload();
+};
+app.mount('#app');
