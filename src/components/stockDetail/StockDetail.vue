@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import SvgIcon from '../icons/SvgIcon.vue';
 import useStockDetail from './hooks/useStockDetail';
 
