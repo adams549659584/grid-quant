@@ -6,6 +6,7 @@ import SvgIcon from '../icons/SvgIcon.vue';
 import useAuth from './hooks/useAuth';
 import { queryParse } from '@/helpers/UrlHelper';
 import useStockHistory from '../history/hooks/useStockHistory';
+import usePredict from '../predict/hooks/usePredict';
 
 const isShowSync = ref(false);
 const isShowBackupDialog = ref(false);
@@ -23,7 +24,7 @@ const {
   getBackupList,
   backup,
   delBackup,
-  restore,
+  restoreBackup,
   queryOtherBackupList
 } = useAuth();
 
@@ -84,6 +85,13 @@ const del = async (backupId: number) => {
   await delBackup(backupId);
   loadBackupList(false);
   loadingInstance.close();
+};
+
+const restore = async (backupId: number) => {
+  restoreBackup(backupId).then((res) => {
+    const { initNextPriceList } = usePredict();
+    initNextPriceList();
+  });
 };
 
 const toMyBackup = async () => {

@@ -163,7 +163,7 @@ const backup = async () => {
 /**
  * 还原备份
  */
-const restore = async (backupId: number) => {
+const restoreBackup = async (backupId: number) => {
   if (!commentList.value) {
     ElMessage.error('备份数据初始化异常，请稍后重试');
     return;
@@ -224,7 +224,7 @@ export default function useAuth() {
     toLogin,
     getBackupList,
     backup,
-    restore,
+    restoreBackup,
     delBackup,
     queryOtherBackupList
   };
