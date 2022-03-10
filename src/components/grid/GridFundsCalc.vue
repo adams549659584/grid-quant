@@ -6,11 +6,13 @@ import { FunnelChart } from 'echarts/charts';
 import { CanvasRenderer } from 'echarts/renderers';
 import SvgIcon from '../icons/SvgIcon.vue';
 import useGrid from '@/components/grid/hooks/useGrid';
+import useStockHistory from '../history/hooks/useStockHistory';
 
 echarts.use([TitleComponent, ToolboxComponent, TooltipComponent, FunnelChart, CanvasRenderer]);
 
 const chartsRef = ref<HTMLElement>();
-const { initPyramidCalc, hidePyramidCalc, refreshPyramidCalc, pyramidConfig, savePyramidConfig } = useGrid();
+const { initPyramidCalc, showPyramidCalc, hidePyramidCalc, refreshPyramidCalc, pyramidConfig, pyramidConfigList, savePyramidConfig } = useGrid();
+const { historyRows } = useStockHistory();
 
 const isShowPyramidConfig = ref(false);
 const showPyramidConfig = () => (isShowPyramidConfig.value = true);
@@ -18,6 +20,13 @@ const saveConfig = () => {
   isShowPyramidConfig.value = false;
   refreshPyramidCalc();
   savePyramidConfig();
+};
+const resetConfig = () => {
+  pyramidConfigList.value = pyramidConfigList.value.filter((x) => !(x.market === pyramidConfig.market && x.code === pyramidConfig.code));
+  const stockEnt = historyRows.value!.find((x) => x.market === pyramidConfig.market && x.code === pyramidConfig.code);
+  if (stockEnt) {
+    showPyramidCalc({ market: stockEnt.market, code: stockEnt.code, name: stockEnt.name, precision: stockEnt.precision || 3, firstBuyPrice: stockEnt.nowPrice.closePrice });
+  }
 };
 
 onMounted(() => {
@@ -77,7 +86,8 @@ onMounted(() => {
     </el-form>
     <template #footer>
       <span>
-        <el-button type="primary" @click="saveConfig">重新计算</el-button>
+        <el-button type="danger" @click="resetConfig">重置</el-button>
+        <el-button type="primary" @click="saveConfig">确定</el-button>
       </span>
     </template>
   </el-dialog>
