@@ -245,7 +245,7 @@ const handlePyramidConfig = () => {
       if (pyramidConfig.firstSalePrice > pyramidConfig.firstBuyPrice) {
       }
       gridSuggestion = `，网格区间上下 5% 左右，今日建议网格比例 ${(suggestGridRate * 100).toFixed(2)}% `;
-      pyramidOption.series[1].tooltip!.formatter = `基准价￥${stockEnt.nowPrice.closePrice}，建议底仓 ${pyramidConfig.initTradeCount * 2} 股，${gridSuggestion}`;
+      pyramidOption.series[1].tooltip!.formatter = `建议底仓 ${pyramidConfig.initTradeCount * 2} 股，${gridSuggestion}`;
     }
     // 金字塔建仓
     pyramidOption.series[2].width = isMobileScreen ? '40%' : '70%';
