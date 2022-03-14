@@ -25,7 +25,7 @@ const { showStockDetail } = useStockDetail();
         <SvgIcon
           class="w-[2rem] h-[2rem] cursor-pointer"
           name="pyramid"
-          @click="showPyramidCalc({ market: row.market, code: row.code, name: row.name, precision: row.precision || 3, firstBuyPrice: row.nowPrice.closePrice })"
+          @click="showPyramidCalc({ market: row.market, code: row.code, name: row.name, precision: row.precision || 3, initPrice: row.nowPrice.closePrice })"
         />
         <!-- <SvgIcon
           class="w-[2rem] h-[2rem] cursor-pointer"

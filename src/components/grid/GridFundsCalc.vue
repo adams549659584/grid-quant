@@ -34,7 +34,7 @@ const resetConfig = () => {
   })
     .then(({ value }) => {
       if (+value > 0) {
-        showPyramidCalc({ market: stockEnt.market, code: stockEnt.code, name: stockEnt.name, precision: stockEnt.precision || 3, firstBuyPrice: +value });
+        showPyramidCalc({ market: stockEnt.market, code: stockEnt.code, name: stockEnt.name, precision: stockEnt.precision || 3, initPrice: +value });
       } else {
         ElMessage.error('基准价需为数值');
         return resetConfig();

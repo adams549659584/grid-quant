@@ -112,6 +112,10 @@ export interface IPyramidConfig {
    */
   precision: number;
   /**
+   * 初始基准价
+   */
+  initPrice: number;
+  /**
    * 金字塔出货价格
    */
   firstSalePrice: number;
@@ -157,6 +161,7 @@ const pyramidConfig = reactive<IPyramidConfig>({
   code: '000001',
   name: '上证指数',
   precision: 3,
+  initPrice: 0,
   firstBuyPrice: 0,
   firstBuyAmt: 2000,
   firstSalePrice: 0,
@@ -183,9 +188,9 @@ const showPyramidCalc = (config: Partial<IPyramidConfig>) => {
   Object.assign(pyramidConfig, cacheConfig || config);
   pyramidConfig.mixTradeCount = pyramidConfig.name.endsWith('债') ? 10 : 100;
   // 首次显示
-  if (!cacheConfig && !config.firstSalePrice && config.firstBuyPrice) {
-    pyramidConfig.firstBuyPrice = mathRound(config.firstBuyPrice * (1 - pyramidConfig.percentRate / 100), pyramidConfig.precision || 3);
-    pyramidConfig.firstSalePrice = mathRound(config.firstBuyPrice * (1 + pyramidConfig.percentRate / 100), pyramidConfig.precision || 3);
+  if (!cacheConfig && config.initPrice) {
+    pyramidConfig.firstBuyPrice = mathRound(config.initPrice * (1 - pyramidConfig.percentRate / 100), pyramidConfig.precision || 3);
+    pyramidConfig.firstSalePrice = mathRound(config.initPrice * (1 + pyramidConfig.percentRate / 100), pyramidConfig.precision || 3);
   }
   pyramidConfig.initTradeCount = Math.round(pyramidConfig.firstBuyAmt / pyramidConfig.firstBuyPrice / pyramidConfig.mixTradeCount) * pyramidConfig.mixTradeCount;
   handlePyramidConfig();
@@ -207,7 +212,8 @@ const handlePyramidConfig = () => {
     pyramidOption.series[0].width = isMobileScreen ? '40%' : '70%';
     pyramidOption.series[0].data = [];
     for (let i = 1; i <= pyramidConfig.layerCount; i++) {
-      const nowPrice = mathRound(pyramidConfig.firstSalePrice * Math.pow(1 + pyramidConfig.percentRate / 100, i - 1), pyramidConfig.precision);
+      // const nowPrice = mathRound(pyramidConfig.firstSalePrice * Math.pow(1 + pyramidConfig.percentRate / 100, i - 1), pyramidConfig.precision);
+      const nowPrice = mathRound(pyramidConfig.firstSalePrice * (1 + (pyramidConfig.percentRate * (i - 1)) / 100), pyramidConfig.precision);
       const nowTradeCount = pyramidConfig.initTradeCount * i;
       const usedAmt = mathRound(nowPrice * nowTradeCount, 2);
       const nowTotalSaleAmt = (totalSaleAmt += usedAmt);
@@ -234,7 +240,6 @@ const handlePyramidConfig = () => {
     // 网格交易
     pyramidOption.series[1].width = isMobileScreen ? '12%' : '28%';
     (pyramidOption.series[1].data as any)[0].name = isMobileScreen ? `${pyramidConfig.code}` : `${pyramidConfig.code} ${pyramidConfig.name} 网格交易`;
-    let gridSuggestion = '建立适合的网格比例，自动交易';
     const stockEnt = historyRows.value!.find((x) => x.market === pyramidConfig.market && x.code === pyramidConfig.code);
     if (stockEnt?.nextPrice) {
       let todayRate = calcRate(stockEnt.prevPrice.closePrice, stockEnt.nextPrice.firstSalePrice) - calcRate(stockEnt.prevPrice.closePrice, stockEnt.nextPrice.firstBuyPrice);
@@ -244,14 +249,15 @@ const handlePyramidConfig = () => {
       }
       if (pyramidConfig.firstSalePrice > pyramidConfig.firstBuyPrice) {
       }
-      gridSuggestion = `，网格区间上下 5% 左右，今日建议网格比例 ${(suggestGridRate * 100).toFixed(2)}% `;
-      pyramidOption.series[1].tooltip!.formatter = `建议底仓 ${pyramidConfig.initTradeCount * 2} 股，${gridSuggestion}`;
+      const initPriceDesc = pyramidConfig.initPrice ? `初始基准价￥${pyramidConfig.initPrice.toFixed(pyramidConfig.precision || 3)}，` : '';
+      pyramidOption.series[1].tooltip!.formatter = `${initPriceDesc}建议价格区间上下 5% 左右，今日建议网格比例 ${(suggestGridRate * 100).toFixed(2)}% `;
     }
     // 金字塔建仓
     pyramidOption.series[2].width = isMobileScreen ? '40%' : '70%';
     pyramidOption.series[2].data = [];
     for (let i = 1; i <= pyramidConfig.layerCount; i++) {
-      const nowPrice = mathRound(pyramidConfig.firstBuyPrice * Math.pow(1 - pyramidConfig.percentRate / 100, i - 1), pyramidConfig.precision);
+      // const nowPrice = mathRound(pyramidConfig.firstBuyPrice * Math.pow(1 - pyramidConfig.percentRate / 100, i - 1), pyramidConfig.precision);
+      const nowPrice = mathRound(pyramidConfig.firstBuyPrice * (1 - (pyramidConfig.percentRate * (i - 1)) / 100), pyramidConfig.precision);
       const nowTradeCount = pyramidConfig.initTradeCount * i;
       const usedAmt = mathRound(nowPrice * nowTradeCount, 2);
       const nowTotalBuyAmt = (totalBuyAmt += usedAmt);
