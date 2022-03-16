@@ -153,19 +153,20 @@ const queryOtherBackup = async () => {
         <el-button v-if="isQueryOtherBackup" class="mb-2" type="success" @click="toMyBackup">返回我的备份</el-button>
         <el-button v-else class="mb-2" type="success" @click="queryOtherBackup">查看大佬备份</el-button>
         <el-button v-if="!isQueryOtherBackup" class="mb-2" type="primary" @click="add">新增备份</el-button>
-        <el-table v-loading="isLoadingBackupList" :data="commentList" stripe border empty-text="暂无数据">
-          <el-table-column label="备份时间">
-            <template #default="scope">
-              <div>{{ formatISO8601(scope.row.updated_at, 'yyyy-MM-dd HH:mm:ss') }}</div>
-            </template>
-          </el-table-column>
-          <el-table-column align="right" label="操作">
-            <template #default="scope">
-              <el-button @click="restore(scope.row.id)">还原</el-button>
-              <el-button v-if="!isQueryOtherBackup" type="danger" @click="del(scope.row.id)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
+        <div v-if="commentList && commentList.length > 0" class="border text-gray-600">
+          <div class="flex justify-center items-center px-2 py-3 border-b font-bold">
+            <div class="w-1/2">备份时间</div>
+            <div class="w-1/2">操作</div>
+          </div>
+          <div class="flex justify-center items-center px-2 py-3 border-b last:border-b-0" v-for="(comment, index) in commentList" :key="comment.id">
+            <div class="w-1/2">{{ formatISO8601(comment.updated_at, 'yyyy-MM-dd HH:mm:ss') }}</div>
+            <div class="w-1/2">
+              <el-button @click="restore(comment.id)">还原</el-button>
+              <el-button v-if="!isQueryOtherBackup" type="danger" @click="del(comment.id)">删除</el-button>
+            </div>
+          </div>
+        </div>
+        <div v-loading="isLoadingBackupList" element-loading-text="加载中..." v-else class="border border-gray-200 p-10 text-center text-gray-400">暂无备份</div>
       </div>
     </div>
   </div>
