@@ -1,5 +1,9 @@
 export interface INextPrice {
   /**
+   * 收盘价
+   */
+  closePrice: number;
+  /**
    * 极限获利位，短线仓位可兑现，收盘站上去就有大行情要启动
    */
   highSalePrice: number;
@@ -51,6 +55,7 @@ export function calcNextPrice(closePrice: number, lastHighPrice: number, lastLow
   // 极限抄底位，再砸就不会有行情了，看均线如果破位注意止损！
   const lowBuyPrice = mathRound(closePriceAVG - closePriceGap);
   return {
+    closePrice,
     highSalePrice,
     firstSalePrice,
     firstBuyPrice,

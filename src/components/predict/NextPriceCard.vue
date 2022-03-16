@@ -56,53 +56,25 @@ const { showStockDetail } = useStockDetail();
       </div>
       <div class="row bg-red-400">
         <div class="column">极限获利位</div>
-        <div class="column">
-          {{ row.nextPrice.highSalePrice.toFixed(row.precision || 3) }}({{
-            calcPercentRate(isTradeDate && !isTradeTime ? row.nowPrice.closePrice : row.prevPrice.closePrice, row.nextPrice.highSalePrice)
-          }})
-        </div>
+        <div class="column">{{ row.nextPrice.highSalePrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.nextPrice.closePrice, row.nextPrice.highSalePrice) }})</div>
       </div>
       <div class="row bg-red-300">
         <div class="column">第一压力位</div>
-        <div class="column">
-          {{ row.nextPrice.firstSalePrice.toFixed(row.precision || 3) }}({{
-            calcPercentRate(isTradeDate && !isTradeTime ? row.nowPrice.closePrice : row.prevPrice.closePrice, row.nextPrice.firstSalePrice)
-          }})
-        </div>
+        <div class="column">{{ row.nextPrice.firstSalePrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.nextPrice.closePrice, row.nextPrice.firstSalePrice) }})</div>
       </div>
       <div class="row bg-green-300">
         <div class="column">第一支撑位</div>
-        <div class="column">
-          {{ row.nextPrice.firstBuyPrice.toFixed(row.precision || 3) }}({{
-            calcPercentRate(isTradeDate && !isTradeTime ? row.nowPrice.closePrice : row.prevPrice.closePrice, row.nextPrice.firstBuyPrice)
-          }})
-        </div>
+        <div class="column">{{ row.nextPrice.firstBuyPrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.nextPrice.closePrice, row.nextPrice.firstBuyPrice) }})</div>
       </div>
       <div class="row bg-green-400">
         <div class="column">极限抄底位</div>
-        <div class="column">
-          {{ row.nextPrice.lowBuyPrice.toFixed(row.precision || 3) }}({{
-            calcPercentRate(isTradeDate && !isTradeTime ? row.nowPrice.closePrice : row.prevPrice.closePrice, row.nextPrice.lowBuyPrice)
-          }})
-        </div>
+        <div class="column">{{ row.nextPrice.lowBuyPrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.nextPrice.closePrice, row.nextPrice.lowBuyPrice) }})</div>
       </div>
       <div class="row">
         <div class="column">预估振幅</div>
         <div class="column">
-          {{
-            (
-              (calcRate(isTradeDate && !isTradeTime ? row.nowPrice.closePrice : row.prevPrice.closePrice, row.nextPrice.firstSalePrice) -
-                calcRate(isTradeDate && !isTradeTime ? row.nowPrice.closePrice : row.prevPrice.closePrice, row.nextPrice.firstBuyPrice)) *
-              100
-            ).toFixed(2)
-          }}% -
-          {{
-            (
-              (calcRate(isTradeDate && !isTradeTime ? row.nowPrice.closePrice : row.prevPrice.closePrice, row.nextPrice.highSalePrice) -
-                calcRate(isTradeDate && !isTradeTime ? row.nowPrice.closePrice : row.prevPrice.closePrice, row.nextPrice.lowBuyPrice)) *
-              100
-            ).toFixed(2)
-          }}%
+          {{ ((calcRate(row.nextPrice.closePrice, row.nextPrice.firstSalePrice) - calcRate(row.nextPrice.closePrice, row.nextPrice.firstBuyPrice)) * 100).toFixed(2) }}% -
+          {{ ((calcRate(row.nextPrice.closePrice, row.nextPrice.highSalePrice) - calcRate(row.nextPrice.closePrice, row.nextPrice.lowBuyPrice)) * 100).toFixed(2) }}%
         </div>
       </div>
     </div>

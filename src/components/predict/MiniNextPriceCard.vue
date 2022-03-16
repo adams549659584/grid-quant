@@ -28,26 +28,14 @@ const { isTradeDate, isTradeTime, calcPercentRate } = usePredict();
           </div>
         </el-popover>
       </div>
-      <div class="row bg-red-400">
-        {{ row.nextPrice.highSalePrice.toFixed(row.precision || 3) }}({{
-          calcPercentRate(isTradeDate && !isTradeTime ? row.nowPrice.closePrice : row.prevPrice.closePrice, row.nextPrice.highSalePrice)
-        }})
-      </div>
+      <div class="row bg-red-400">{{ row.nextPrice.highSalePrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.nextPrice.closePrice, row.nextPrice.highSalePrice) }})</div>
       <div class="row bg-red-300">
-        {{ row.nextPrice.firstSalePrice.toFixed(row.precision || 3) }}({{
-          calcPercentRate(isTradeDate && !isTradeTime ? row.nowPrice.closePrice : row.prevPrice.closePrice, row.nextPrice.firstSalePrice)
-        }})
+        {{ row.nextPrice.firstSalePrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.nextPrice.closePrice, row.nextPrice.firstSalePrice) }})
       </div>
       <div class="row bg-green-300">
-        {{ row.nextPrice.firstBuyPrice.toFixed(row.precision || 3) }}({{
-          calcPercentRate(isTradeDate && !isTradeTime ? row.nowPrice.closePrice : row.prevPrice.closePrice, row.nextPrice.firstBuyPrice)
-        }})
+        {{ row.nextPrice.firstBuyPrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.nextPrice.closePrice, row.nextPrice.firstBuyPrice) }})
       </div>
-      <div class="row bg-green-400">
-        {{ row.nextPrice.lowBuyPrice.toFixed(row.precision || 3) }}({{
-          calcPercentRate(isTradeDate && !isTradeTime ? row.nowPrice.closePrice : row.prevPrice.closePrice, row.nextPrice.lowBuyPrice)
-        }})
-      </div>
+      <div class="row bg-green-400">{{ row.nextPrice.lowBuyPrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.nextPrice.closePrice, row.nextPrice.lowBuyPrice) }})</div>
     </div>
     <div class="next-price-box invisible" v-for="i in historyFillRowCount" :key="i"></div>
   </div>
