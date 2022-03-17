@@ -17,8 +17,8 @@ const { isTradeDate, isTradeTime, calcPercentRate } = usePredict();
       <div class="row cursor-pointer">
         <el-popover placement="top-start" trigger="hover">
           <template #reference>
-            <span :class="{ 'text-red-500': row.nowPrice.closePrice > row.prevPrice.closePrice, 'text-green-500': row.nowPrice.closePrice < row.prevPrice.closePrice }"
-              >{{ row.nowPrice.closePrice.toFixed(row.precision || 3) }}({{ ((row.nowPrice.closePrice / row.prevPrice.closePrice - 1) * 100).toFixed(2) }}%)</span
+            <span :class="{ 'text-red-500': row.nowPrice.closePrice > row.nextPrice.closePrice, 'text-green-500': row.nowPrice.closePrice < row.nextPrice.closePrice }"
+              >{{ row.nowPrice.closePrice.toFixed(row.precision || 3) }}({{ ((row.nowPrice.closePrice / row.nextPrice.closePrice - 1) * 100).toFixed(2) }}%)</span
             >
           </template>
           <div>
