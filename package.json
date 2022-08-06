@@ -28,7 +28,8 @@
     "unplugin-auto-import": "^0.5.11",
     "unplugin-element-plus": "^0.2.0",
     "unplugin-vue-components": "^0.17.14",
-    "vite": "^2.7.2",
+    "vite": "^2.9.14",
+    "vite-plugin-pwa": "^0.12.3",
     "vue-tsc": "^0.29.8"
   }
 }

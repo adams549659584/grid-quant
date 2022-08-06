@@ -20,7 +20,8 @@
     "types": [
       "vite/client",
       "element-plus/global",
-      "vite-plugin-svg-icons/client"
+      "vite-plugin-svg-icons/client",
+      "vite-plugin-pwa/client"
     ],
     "paths": {
       "@/*": [

@@ -9,6 +9,7 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
 import pkg from './package.json';
 import { formatDate } from './build/utils';
 import { initSvgIconsPlugin } from './build/vite/plugin/svgSprite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 function pathResolve(dir: string) {
   return resolve(process.cwd(), '.', dir);
@@ -65,7 +66,78 @@ export default ({ command }: ConfigEnv): UserConfig => {
       Components({
         resolvers: [ElementPlusResolver()]
       }),
-      initSvgIconsPlugin(isBuild)
+      initSvgIconsPlugin(isBuild),
+      VitePWA({
+        includeAssets: ['./favicon.ico'],
+        manifest: {
+          name: '网格量化',
+          short_name: '网格量化',
+          // 加上图标就可以安装为 web app
+          icons: [
+            {
+              src: './images/pwa/128.png',
+              type: 'image/png',
+              sizes: '128x128'
+            },
+            {
+              src: './images/pwa/144.png',
+              type: 'image/png',
+              sizes: '144x144'
+            },
+            {
+              src: './images/pwa/192.png',
+              type: 'image/png',
+              sizes: '192x192'
+            },
+            {
+              src: './images/pwa/256.png',
+              type: 'image/png',
+              sizes: '256x256'
+            },
+            {
+              src: './images/pwa/512.png',
+              type: 'image/png',
+              sizes: '512x512'
+            }
+          ]
+        },
+        registerType: 'autoUpdate',
+        workbox: {
+          runtimeCaching: [
+            // {
+            //   urlPattern: ({ request }) => request.url.toLowerCase().includes('/api/'),
+            //   handler: 'NetworkFirst',
+            //   options: {
+            //     cacheName: `${name}-api-cache`
+            //   }
+            // },
+            {
+              urlPattern: /(.*?)\.(js|css|ts)/, // js /css /ts静态资源缓存
+              handler: 'CacheFirst',
+              options: {
+                cacheName: `${name}-js-css-cache`
+              }
+            },
+            {
+              urlPattern: /(.*?)\.(png|jpe?g|svg|gif|bmp|psd|tiff|tga|eps)/, // 图片缓存
+              handler: 'CacheFirst',
+              options: {
+                cacheName: `${name}-image-cache`
+              }
+            }
+          ]
+        }
+      })
     ]
+    // build: {
+    //   rollupOptions: {
+    //     external: ['vue'],
+    //     output: {
+    //       globals: {
+    //         vue: 'Vue'
+    //       }
+    //     }
+    //   }
+    // }
   };
 };

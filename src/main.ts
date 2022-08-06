@@ -2,6 +2,9 @@ import { createApp } from 'vue';
 import App from './App.vue';
 import './index.css';
 import 'virtual:svg-icons-register';
+import { useRegisterSW } from 'virtual:pwa-register/vue';
+
+useRegisterSW();
 
 const app = createApp(App);
 app.config.errorHandler = (err, instance) => {
