@@ -13,14 +13,14 @@ const { showStockDetail } = useStockDetail();
 </script>
 
 <template>
-  <div class="flex justify-around items-center flex-wrap text-gray-800" v-if="filterHistoryRows && filterHistoryRows.length > 0">
-    <div class="next-price-box relative rounded-md shadow-md shadow-gray-300" v-for="(row, index) in filterHistoryRows" :key="index">
-      <div class="absolute top-3 left-3 opacity-50" v-if="row.nextPrice.firstSalePrice > row.nextPrice.firstBuyPrice">
+  <div class="flex flex-wrap items-center justify-around text-gray-800" v-if="filterHistoryRows && filterHistoryRows.length > 0">
+    <div class="relative rounded-md shadow-md next-price-box shadow-gray-300" v-for="(row, index) in filterHistoryRows" :key="index">
+      <div class="absolute opacity-50 top-3 left-3" v-if="row.nextPrice.firstSalePrice > row.nextPrice.firstBuyPrice">
         <svg-icon class="w-[4rem] h-[4rem]" v-if="row.nowPrice.closePrice <= row.nextPrice.firstBuyPrice" name="buy" color="#1afa29" />
         <svg-icon class="w-[4rem] h-[4rem]" v-if="row.nowPrice.closePrice >= row.nextPrice.firstSalePrice" name="sale" color="#d81e06" />
       </div>
-      <div class="row p-2 space-x-1">
-        <span class="flex-1 text-center truncate cursor-pointer" @click="showStockDetail(row)">{{ `${row.code} ${row.name}` }}</span>
+      <div class="p-2 space-x-1 row">
+        <span class="flex-1 text-center truncate cursor-pointer" @click="showStockDetail(row)">{{ `${row.market}.${row.code} ${row.name}` }}</span>
         <!-- <SvgIcon class="w-[2rem] h-[2rem] cursor-pointer" name="kline" /> -->
         <SvgIcon
           class="w-[2rem] h-[2rem] cursor-pointer"
@@ -38,7 +38,7 @@ const { showStockDetail } = useStockDetail();
       <div class="row">
         <div class="column">操作</div>
         <div
-          class="column cursor-pointer"
+          class="cursor-pointer column"
           :class="{ 'text-red-500': row.nowPrice.closePrice > row.nextPrice.closePrice, 'text-green-500': row.nowPrice.closePrice < row.nextPrice.closePrice }"
         >
           <el-popover placement="top-start" trigger="hover">
@@ -54,19 +54,19 @@ const { showStockDetail } = useStockDetail();
           </el-popover>
         </div>
       </div>
-      <div class="row bg-red-400">
+      <div class="bg-red-400 row">
         <div class="column">极限获利位</div>
         <div class="column">{{ row.nextPrice.highSalePrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.nextPrice.closePrice, row.nextPrice.highSalePrice) }})</div>
       </div>
-      <div class="row bg-red-300">
+      <div class="bg-red-300 row">
         <div class="column">第一压力位</div>
         <div class="column">{{ row.nextPrice.firstSalePrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.nextPrice.closePrice, row.nextPrice.firstSalePrice) }})</div>
       </div>
-      <div class="row bg-green-300">
+      <div class="bg-green-300 row">
         <div class="column">第一支撑位</div>
         <div class="column">{{ row.nextPrice.firstBuyPrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.nextPrice.closePrice, row.nextPrice.firstBuyPrice) }})</div>
       </div>
-      <div class="row bg-green-400">
+      <div class="bg-green-400 row">
         <div class="column">极限抄底位</div>
         <div class="column">{{ row.nextPrice.lowBuyPrice.toFixed(row.precision || 3) }}({{ calcPercentRate(row.nextPrice.closePrice, row.nextPrice.lowBuyPrice) }})</div>
       </div>
@@ -78,7 +78,7 @@ const { showStockDetail } = useStockDetail();
         </div>
       </div>
     </div>
-    <div class="next-price-box invisible" v-for="i in historyFillRowCount" :key="i"></div>
+    <div class="invisible next-price-box" v-for="i in historyFillRowCount" :key="i"></div>
     <GridFundsCalc v-if="isShowPyramidCalc" />
   </div>
   <div v-else class="text-center h-[30rem] leading-[30rem] text-lg text-gray-400">暂无数据</div>

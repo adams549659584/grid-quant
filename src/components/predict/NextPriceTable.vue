@@ -49,7 +49,7 @@ const filterOpt = (value: string, row: IHistoryRow) => {
       </el-table-column>-->
       <el-table-column prop="code" label="股票基金" sortable>
         <template #default="scope">
-          <h1>{{ scope.row.code }} {{ scope.row.name }}</h1>
+          <h1>{{ scope.row.market }}.{{ scope.row.code }} {{ scope.row.name }}</h1>
         </template>
       </el-table-column>
       <el-table-column label="现价" sortable :sort-method="sortPrice">
